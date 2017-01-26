@@ -11,6 +11,5 @@
         <Button x:Name="button_Send" Content="Envoyer" HorizontalAlignment="Left" Margin="300,82,0,0" VerticalAlignment="Top" Width="75"
                 Command="{Binding SendMessageCommand}" CommandParameter="{Binding ElementName=textBox_Send, Path=Text}"/>
         <TextBox x:Name="textBox_Send" HorizontalAlignment="Left" Height="23" Margin="144,79,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-        <TextBlock x:Name="MsgReceivedTextBlock" Text="{Binding MessageReceived, StringFormat=Reçu: \{0\}}" Margin="144,123,142,167"/>
     </Grid>
 </Window>

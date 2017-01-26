@@ -11,7 +11,7 @@ namespace Server
 {
     class HandleServer : INotifyPropertyChanged
     {
-        private TcpListener listener;
+        private TcpListener listener = null;
         private readonly List<HandleClient> listClients = new List<HandleClient>();
         private int connected { get; set; }
         private bool acceptClients { get; set; }
@@ -75,7 +75,8 @@ namespace Server
 
         ~HandleServer()
         {
-            listener.Stop();
+            if(listener!=null)
+                listener.Stop();
         }
     }
 }

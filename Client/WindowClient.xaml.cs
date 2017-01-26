@@ -3,23 +3,15 @@ using System.Windows;
 
 namespace Client
 {
-    /// <summary>
-    /// Logique d'interaction pour MainWindow.xaml
-    /// </summary>
     public partial class WindowClient : Window
     {
         HandleConnection myConnection;
-        public WindowClient()
+        public WindowClient(HandleConnection connection)
         {
             InitializeComponent();
 
-            myConnection = new HandleConnection();
-
-            myConnection.Connect();
+            myConnection = connection;
             DataContext = myConnection;
-
-            Thread threadWaitClient = new Thread(myConnection.ManageConnection);
-            threadWaitClient.Start();
         }
     }
 }

@@ -8,27 +8,13 @@ using System.Threading;
 
 namespace Client
 {
-    public class HandleConnection : INotifyPropertyChanged
+    public class HandleConnection
     {
         private readonly TcpClient client;
         private NetworkStream networkStream;
-        private string messageReceived;
+        public string currentMessage { get; private set; }
 
         public RelayCommand<string> SendMessageCommand { get; private set; }
-
-        public string MessageReceived
-        {
-            get
-            {
-                return messageReceived;
-            }
-
-            set
-            {
-                messageReceived = value;
-                RaisePropertyChanged(nameof(MessageReceived));
-            }
-        }
 
         public HandleConnection()
         {
@@ -36,7 +22,7 @@ namespace Client
             client = new TcpClient();
         }
 
-        public void Connect()
+        public bool Connect()
         {
             try
             {
@@ -44,12 +30,13 @@ namespace Client
                 networkStream = client.GetStream();
                 Thread ctThread = new Thread(ManageConnection);
                 ctThread.Start();
+                return true;
             }
             catch (Exception exc)
             {
                 Trace.WriteLine(exc);
-            }
-            
+                return false;
+            }            
         }
 
         public void ManageConnection()
@@ -73,7 +60,7 @@ namespace Client
                         }
                         while (networkStream.DataAvailable);
                         Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
-                        MessageReceived = myCompleteMessage.ToString();
+                        currentMessage = myCompleteMessage.ToString();
                         // Traiter trame de caractère myCompleteMessage
                     }
                 }
@@ -93,13 +80,6 @@ namespace Client
                 networkStream.Write(sendBytes, 0, sendBytes.Length);
                 networkStream.Flush();
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void RaisePropertyChanged(string propName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
     }
 }
