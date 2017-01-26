@@ -6,10 +6,10 @@ namespace Client
     /// <summary>
     /// Logique d'interaction pour MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class WindowClient : Window
     {
         HandleConnection myConnection;
-        public MainWindow()
+        public WindowClient()
         {
             InitializeComponent();
 

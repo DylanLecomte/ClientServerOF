@@ -6,19 +6,15 @@ namespace Server
     /// <summary>
     /// Logique d'interaction pour MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class WindowServer : Window
     {
         HandleServer myServer;
-        public MainWindow()
+        public WindowServer()
         {
             InitializeComponent();
 
             myServer = new HandleServer();
-
-            myServer.StartServer();
-
-            Thread threadWaitClient = new Thread(myServer.waitForClient);
-            threadWaitClient.Start();             
+            DataContext = myServer;
         }
     }
 }

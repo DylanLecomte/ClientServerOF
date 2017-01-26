@@ -10,7 +10,7 @@ namespace Client
 {
     public class HandleConnection : INotifyPropertyChanged
     {
-        private TcpClient client;
+        private readonly TcpClient client;
         private NetworkStream networkStream;
         private string messageReceived;
 
@@ -29,6 +29,7 @@ namespace Client
                 RaisePropertyChanged(nameof(MessageReceived));
             }
         }
+
         public HandleConnection()
         {
             SendMessageCommand = new RelayCommand<string>(SendMessage);
@@ -37,10 +38,18 @@ namespace Client
 
         public void Connect()
         {
-            client.Connect("127.0.0.1", 1337);
-            networkStream = client.GetStream();
-            Thread ctThread = new Thread(ManageConnection);
-            ctThread.Start();
+            try
+            {
+                client.Connect("127.0.0.1", 1337);
+                networkStream = client.GetStream();
+                Thread ctThread = new Thread(ManageConnection);
+                ctThread.Start();
+            }
+            catch (Exception exc)
+            {
+                Trace.WriteLine(exc);
+            }
+            
         }
 
         public void ManageConnection()

@@ -75,7 +75,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="MainWindow.xaml">
+    <Page Include="WindowClient.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -84,8 +84,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HandleConnection.cs" />
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="WindowClient.xaml.cs">
+      <DependentUpon>WindowClient.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
