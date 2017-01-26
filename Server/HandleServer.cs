@@ -15,6 +15,7 @@ namespace Server
         private readonly List<HandleClient> listClients = new List<HandleClient>();
         private int connected { get; set; }
         private bool acceptClients { get; set; }
+        private Database db;
         public RelayCommand StartServerCommand { get; private set; }
 
         private bool canStartServer=true;
@@ -37,6 +38,7 @@ namespace Server
             this.connected = 0;
             this.acceptClients = true;
             this.StartServerCommand = new RelayCommand(StartServer);
+            this.db = new Database();
         }
 
         public void StartServer()
