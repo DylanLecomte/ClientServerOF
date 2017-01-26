@@ -16,6 +16,7 @@ namespace Server
         private int connected { get; set; }
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
+        public Database db; // Temporary public
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -37,6 +38,7 @@ namespace Server
             this.connected = 0;
             this.acceptClients = true;
             this.StartServerCommand = new RelayCommand(StartServer);
+            this.db = new Database();
         }
 
         public void StartServer()

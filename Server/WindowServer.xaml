@@ -14,5 +14,9 @@
         <Label x:Name="label" Content="Server" HorizontalAlignment="Left" Margin="34,19,0,0" VerticalAlignment="Top" Grid.Column="1" RenderTransformOrigin="0.5,-0.154" FontSize="22" FontFamily="Arial" FontWeight="Bold"/>
         <Button x:Name="button" Content="Start server" Grid.Column="1" HorizontalAlignment="Left" Margin="38,59,0,0" VerticalAlignment="Top" Width="75"
             Command="{Binding StartServerComand}" IsEnabled="{Binding ServerStarted}" />
+        <Button x:Name="btnConnect" Content="Connect" Grid.Column="1" HorizontalAlignment="Left" Margin="38,177,0,0" VerticalAlignment="Top" Width="75" Click="btnConnect_Click"/>
+        <Button x:Name="btnInsert" Content="Insert" Grid.Column="1" HorizontalAlignment="Left" Margin="38,197,0,0" VerticalAlignment="Top" Width="75" Click="btnInsert_Click"/>
+        <Button x:Name="btnUpdate" Content="Update" Grid.Column="1" HorizontalAlignment="Left" Margin="38,217,0,0" VerticalAlignment="Top" Width="75" Click="btnUpdate_Click"/>
+        <Button x:Name="btnSelect" Content="Select" Grid.Column="1" HorizontalAlignment="Left" Margin="38,237,0,0" VerticalAlignment="Top" Width="75" Click="btnSelect_Click"/>
     </Grid>
 </Window>
