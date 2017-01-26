@@ -12,7 +12,7 @@ namespace Client
         {
             InitializeComponent();
 
-            myConnection = new Connection();
+            myConnection = new Connection(this);
             DataContext = myConnection;
         }
     }
