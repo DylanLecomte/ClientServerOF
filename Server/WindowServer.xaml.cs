@@ -16,25 +16,5 @@ namespace Server
             myServer = new HandleServer();
             DataContext = myServer;
         }
-
-        private void btnConnect_Click(object sender, RoutedEventArgs e)
-        {
-            myServer.db.connect();
-        }
-
-        private void btnInsert_Click(object sender, RoutedEventArgs e)
-        {
-            myServer.db.insertUser("Jean", "Cloud");
-        }
-
-        private void btnUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            myServer.db.updateBalance("Jean", 10);
-        }
-
-        private void btnSelect_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

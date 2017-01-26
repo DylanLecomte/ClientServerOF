@@ -15,8 +15,8 @@ namespace Server
         private readonly List<HandleClient> listClients = new List<HandleClient>();
         private int connected { get; set; }
         private bool acceptClients { get; set; }
+        private Database db;
         public RelayCommand StartServerCommand { get; private set; }
-        public Database db; // Temporary public
 
         private bool canStartServer=true;
         public bool CanStartServer

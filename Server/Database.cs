@@ -10,6 +10,15 @@ namespace Server
         private string connectionString;
         private SQLiteConnection con;
 
+        public enum Error
+        {
+            None,
+            Duplication,
+            NonExistant,
+            WrongPassword,
+            CommandFail,
+            DBNotOpen
+        }
 
         public Database()
         {
@@ -17,27 +26,41 @@ namespace Server
             con = new SQLiteConnection(connectionString);
         }
 
-        public void connect()
+        ~Database()
         {
+            con.Dispose();
+        }
+
+        public Error connect()
+        {
+            Error errorCode = Error.None ;
             try
             {
                 con.Open();
-                if (con.State == System.Data.ConnectionState.Open)
+                if (con.State != System.Data.ConnectionState.Open)
                 {
-                    MessageBox.Show("connection created");
+                    errorCode = Error.DBNotOpen;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+
+            return errorCode;
         }
 
-        public void insertUser(string username, string password)
+        public Error insertUser(string username, string password)
         {
+            Error errorCode = Error.None;           
+            if (con.State != System.Data.ConnectionState.Open)
+            {
+                return Error.DBNotOpen;
+            }
+
+            SQLiteCommand cmd = new SQLiteCommand();            
             try
             {
-                SQLiteCommand cmd = new SQLiteCommand();
                 cmd.CommandText = @"INSERT INTO User (username, password, balance) VALUES (@username, @password, 10)";
                 cmd.Connection = con;
                 cmd.Parameters.Add(new SQLiteParameter(@"username", username));
@@ -45,23 +68,32 @@ namespace Server
 
                 int i = cmd.ExecuteNonQuery();
 
-                if (i == 1)
-                {
-                    MessageBox.Show("User added...");
-                }
+                if (i != 1) { errorCode = Error.CommandFail; }
 
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+            finally
+            {
+                cmd.Dispose();
+            }
+
+            return errorCode;
         }
 
-        public void updateBalance(string username, int differential)
+        public Error updateBalance(string username, int differential)
         {
+            Error errorCode = Error.None;
+            if (con.State != System.Data.ConnectionState.Open)
+            {
+                return Error.DBNotOpen;
+            }
+
+            SQLiteCommand cmd = new SQLiteCommand();
             try
             {
-                SQLiteCommand cmd = new SQLiteCommand();
                 cmd.CommandText = @"UPDATE User SET balance = balance + @differential WHERE username = @username";
                 cmd.Connection = con;
                 cmd.Parameters.Add(new SQLiteParameter(@"differential", differential));
@@ -69,16 +101,117 @@ namespace Server
 
                 int i = cmd.ExecuteNonQuery();
 
-                if (i == 1)
-                {
-                    MessageBox.Show("Balance of " + username + " update...");
-                }
+                if (i != 1) { errorCode = Error.CommandFail; }
 
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+            finally
+            {
+                cmd.Dispose();
+            }
+
+            return errorCode;
         }
+
+        public Error getBalance(string username, ref int balance)
+        {
+            Error errorCode = Error.None;
+            if (con.State != System.Data.ConnectionState.Open)
+            {
+                return Error.DBNotOpen;
+            }
+
+            SQLiteCommand cmd = new SQLiteCommand();
+
+            try
+            {
+                cmd.CommandText = @"SELECT balance FROM User WHERE username = @username";
+                cmd.Connection = con;
+                cmd.Parameters.Add(new SQLiteParameter(@"username", username));
+                   
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.StepCount > 1) { errorCode = Error.Duplication; }
+                    if (reader.StepCount == 0) { errorCode = Error.NonExistant; }
+
+                    if (errorCode == Error.None)
+                    {
+                        if(reader.Read())
+                        {
+                            balance = reader.GetInt32(0);
+                        }
+                    }
+                    reader.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                cmd.Dispose();
+            }
+
+            return errorCode;
+        }
+
+
+        public Error checkLoginPwd(string username, string password)
+        {
+
+            Error errorCode = Error.None;
+            if (con.State != System.Data.ConnectionState.Open)
+            {
+                return Error.DBNotOpen;
+            }
+
+            SQLiteCommand cmd = new SQLiteCommand();
+
+            try
+            {
+                cmd.CommandText = @"SELECT password FROM User WHERE username = @username";
+                cmd.Connection = con;
+                cmd.Parameters.Add(new SQLiteParameter(@"username", username));
+                   
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+
+                if (reader.StepCount > 1) { errorCode = Error.Duplication; }  
+                if (reader.StepCount == 0) { errorCode = Error.NonExistant; }
+
+                string dbPassword = "";
+
+                if(errorCode == Error.None)
+                {
+                    if (reader.Read())
+                    {
+                        dbPassword = reader.GetString(0);
+                    }
+                    
+                    if (!dbPassword.Equals(password))
+                    {
+                        errorCode = Error.WrongPassword;
+                    }
+                }
+                reader.Close();
+                }
+
+            }
+            catch (Exception ex)
+            {                    
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                cmd.Dispose();
+            }
+
+            return errorCode;
+        }
+
     }
 }
