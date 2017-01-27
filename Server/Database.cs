@@ -7,8 +7,8 @@ namespace Server
     class Database
     {
 
-        private string connectionString;
-        private SQLiteConnection con;
+        private readonly string connectionString;
+        private readonly SQLiteConnection con;
 
         public enum Error
         {
@@ -22,7 +22,7 @@ namespace Server
 
         public Database()
         {
-            connectionString = @" Data Source = " + System.Reflection.Assembly.GetEntryAssembly().Location + @"\database.db; Version = 3";
+            connectionString = @" Data Source = " + Environment.CurrentDirectory + @"\database.db; Version = 3";
             con = new SQLiteConnection(connectionString);
         }
 
