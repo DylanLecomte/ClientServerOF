@@ -13,13 +13,23 @@ namespace Client
         private readonly TcpClient client;
         private NetworkStream networkStream;
         public string currentMessage { get; private set; }
+        public string userName { get; private set; }
+        private Thread ctThread;
 
         public RelayCommand<string> SendMessageCommand { get; private set; }
 
-        public HandleConnection()
+        public HandleConnection(string _userName)
         {
+            this.userName = _userName;
             SendMessageCommand = new RelayCommand<string>(SendMessage);
             client = new TcpClient();
+        }
+
+        public void Clear(bool killThread)
+        {
+            this.client.Close();
+            if(killThread)
+                ctThread.Abort();
         }
 
         public bool Connect()
@@ -28,7 +38,7 @@ namespace Client
             {
                 client.Connect("127.0.0.1", 1337);
                 networkStream = client.GetStream();
-                Thread ctThread = new Thread(ManageConnection);
+                ctThread = new Thread(ManageConnection);
                 ctThread.Start();
                 return true;
             }

@@ -109,6 +109,7 @@
     <Compile Include="Database.cs" />
     <Compile Include="HandleClient.cs" />
     <Compile Include="HandleServer.cs" />
+    <Compile Include="ServerFrameManager.cs" />
     <Compile Include="WindowServer.xaml.cs">
       <DependentUpon>WindowServer.xaml</DependentUpon>
       <SubType>Code</SubType>

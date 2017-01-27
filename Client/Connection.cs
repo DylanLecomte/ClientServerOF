@@ -9,19 +9,23 @@ namespace Client
         public string Login { get; set; }
         public string Password { get; set; }
         public RelayCommand TryConnectionCommand { get; private set; }
-        private WindowClient windowClient;
+
+        private readonly ClientFrameManager clientFrameManager;
         private readonly WindowClientConnection windowClientConnection;
-        private HandleConnection myConnection;
+        
 
         public Connection(WindowClientConnection _windowClientConnection)
         {
             TryConnectionCommand = new RelayCommand(TryConnection, CanTry);
             windowClientConnection = _windowClientConnection;
+            clientFrameManager = new ClientFrameManager();
         }
 
         public void TryConnection()
         {
-            myConnection = new HandleConnection();
+            WindowClient windowClient;
+            HandleConnection myConnection;
+            myConnection = new HandleConnection(Login);
 
             // tentative de connexion au serveur
             if(myConnection.Connect())
@@ -29,24 +33,38 @@ namespace Client
                 Thread threadWaitClient = new Thread(myConnection.ManageConnection);
                 threadWaitClient.Start();
 
-                myConnection.SendMessage("Try Login;" + Login + ";" + Password);
-                System.Threading.Thread.Sleep(1000);
+                myConnection.SendMessage(clientFrameManager.ConnectionBuild(Login, Password));
+
+                Thread.Sleep(1000);
                 // tentative de login
-                if (myConnection.currentMessage.Equals("Login ok"))
+                switch (clientFrameManager.ACKConnectionRead(myConnection.currentMessage))
                 {
-                    windowClient = new WindowClient(myConnection);
-                    windowClient.Show();
-                    windowClientConnection.Close();
-                }
-                // echec login
-                else
-                {
-                    Trace.WriteLine(myConnection.currentMessage);
+                    case "Ok":
+                        windowClient = new WindowClient(myConnection);
+                        windowClient.Show();
+                        windowClientConnection.Close();
+                        break;
+
+                    case "Unknown":
+                        myConnection.Clear(true);
+                        windowClientConnection.displayMessage("Identifiant incorrect");
+                        break;
+
+                    case "PasswordFalse":
+                        myConnection.Clear(true);
+                        windowClientConnection.displayMessage("Mot de passe incorrect");
+                        break;
+
+                    default:
+                        myConnection.Clear(true);
+                        windowClientConnection.displayMessage("Erreur lors de la connection à la base de données");
+                        break;
                 }
             }
             // echec connection au serveur
             else
             {
+                myConnection.Clear(false);
                 Trace.WriteLine("Erreur lors de la connection au serveur");
             }            
         }
