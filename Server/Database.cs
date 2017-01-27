@@ -22,7 +22,7 @@ namespace Server
 
         public Database()
         {
-            connectionString = @" Data Source = C:\Users\Antoine\OneDrive\5A\Sécurité\ClientServerOF\Server\database.db; Version = 3";
+            connectionString = @" Data Source = " + System.Reflection.Assembly.GetEntryAssembly().Location + @"\database.db; Version = 3";
             con = new SQLiteConnection(connectionString);
         }
 

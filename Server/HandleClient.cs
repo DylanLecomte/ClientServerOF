@@ -11,6 +11,20 @@ namespace Server
         TcpClient clientSocket;
         NetworkStream networkStream;
         string clNo;
+        private Database db;
+
+        public HandleClient()
+        {
+            try
+            {
+                this.db = new Database();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("Error : " + ex.Message);
+            }
+        }
+
         public void startClient(TcpClient inClientSocket, string clientNo)
         {
             this.clientSocket = inClientSocket;
@@ -47,6 +61,24 @@ namespace Server
                         while (networkStream.DataAvailable);
                         Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
                         // Traiter trame de caractère myCompleteMessage
+
+                        string[] parameters;
+                        string[] stringSeparators = new string[] { ";" };
+
+       
+                        if (myCompleteMessage.ToString().Contains("Try Login"))
+                        {
+                            parameters = myCompleteMessage.ToString().Split(stringSeparators, StringSplitOptions.None);
+                            Trace.WriteLine("nb parameter : " + parameters.Length);
+                            if(db.checkLoginPwd(parameters[1], parameters[2]) == Database.Error.None)
+                            {
+                                Trace.WriteLine("Sign in successful");
+                            }
+                            else
+                            {
+                                Trace.WriteLine("Sign in successful");
+                            }
+                        }
                     }
 
                     // Renvoyer trame en fonction de la trame

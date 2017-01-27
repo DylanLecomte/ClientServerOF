@@ -38,7 +38,15 @@ namespace Server
             this.connected = 0;
             this.acceptClients = true;
             this.StartServerCommand = new RelayCommand(StartServer);
-            this.db = new Database();
+
+            try
+            {
+                this.db = new Database();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("Error : " + ex.Message);
+            }
         }
 
         public void StartServer()
