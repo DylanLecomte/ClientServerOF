@@ -17,7 +17,7 @@ namespace Server
         private int connected { get; set; }
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
-        ObservableCollection<MyItem> Items;
+        readonly ObservableCollection<MyItem> Items;
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -55,6 +55,9 @@ namespace Server
 
             Thread threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
+
+            Thread threadUpdateList = new Thread(updateUserList);
+            threadUpdateList.Start();
         }
 
         public void waitForClient()
@@ -68,9 +71,6 @@ namespace Server
                 HandleClient newClient = new HandleClient();
                 listClients.Add(newClient);
                 newClient.startClient(client);
-
-                Thread threadUpdateList = new Thread(updateUserList);
-                threadUpdateList.Start();
             }
         }
 
