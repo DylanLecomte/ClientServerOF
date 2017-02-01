@@ -1,6 +1,7 @@
 ﻿using GalaSoft.MvvmLight.Command;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
@@ -16,6 +17,7 @@ namespace Server
         private int connected { get; set; }
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
+        ObservableCollection<MyItem> Items;
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -66,7 +68,38 @@ namespace Server
                 HandleClient newClient = new HandleClient();
                 listClients.Add(newClient);
                 newClient.startClient(client);
+
+                Thread threadUpdateList = new Thread(updateUserList);
+                threadUpdateList.Start();
             }
+        }
+
+        public void updateUserList()
+        {
+            do
+            {
+                if (Items.Count != listClients.Count)
+                {
+
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        Items.Clear();
+                    });
+
+                    foreach (var item in listClients)
+                    {
+
+                        if (item.userName != "")
+                        {
+                            App.Current.Dispatcher.Invoke(() =>
+                            {
+                                Items.Add(new MyItem() { Username = item.userName });
+                            });
+                        }
+
+                    }
+                }
+            } while (true);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -80,6 +113,11 @@ namespace Server
         {
             if(listener!=null)
                 listener.Stop();
+        }
+
+        class MyItem
+        {
+            public string Username;
         }
     }
 }
