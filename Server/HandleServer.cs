@@ -1,5 +1,4 @@
 ﻿using GalaSoft.MvvmLight.Command;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,7 +16,7 @@ namespace Server
         private int connected { get; set; }
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
-        readonly ObservableCollection<MyItem> Items;
+        public ObservableCollection<MyItem> Items { get; set; }
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -41,9 +40,6 @@ namespace Server
             this.StartServerCommand = new RelayCommand(StartServer);
 
             this.Items = new ObservableCollection<MyItem>();
-            this.Items.Add(new MyItem() { Username = "Tartine" });
-
-            Items.RemoveAt(0);
         }
 
         public void StartServer()
@@ -89,16 +85,17 @@ namespace Server
                     foreach (var item in listClients)
                     {
 
-                        if (item.userName != "")
+                        if (item.userName != null)
                         {
                             App.Current.Dispatcher.Invoke(() =>
                             {
-                                Items.Add(new MyItem() { Username = item.userName });
+                                Items.Add(new MyItem() { userName = "Jean"}); //item.userName });
                             });
                         }
 
                     }
                 }
+                Thread.Sleep(100);
             } while (true);
         }
 
@@ -111,13 +108,16 @@ namespace Server
 
         ~HandleServer()
         {
-            if(listener!=null)
+
+            if (listener!=null)
                 listener.Stop();
         }
 
-        class MyItem
-        {
-            public string Username;
-        }
+        
+    }
+
+    class MyItem
+    {
+        public string userName { get; set; }
     }
 }
