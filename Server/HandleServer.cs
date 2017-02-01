@@ -17,6 +17,9 @@ namespace Server
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
         public ObservableCollection<MyItem> Items { get; set; }
+        private bool terminate = false;
+        private Thread threadWaitClient;
+        private Thread threadUpdateList;
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -49,25 +52,30 @@ namespace Server
             Trace.WriteLine("Server started");
             CanStartServer = false;
 
-            Thread threadWaitClient = new Thread(waitForClient);
+            threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
 
-            Thread threadUpdateList = new Thread(updateUserList);
+            threadUpdateList = new Thread(updateUserList);
             threadUpdateList.Start();
         }
 
         public void waitForClient()
         {
             TcpClient client;
-            while (acceptClients)
+            while (acceptClients && !terminate)
             {
-                client = listener.AcceptTcpClient();
-                connected++;
-                Trace.WriteLine("New client accepted");
-                HandleClient newClient = new HandleClient();
-                listClients.Add(newClient);
-                newClient.startClient(client);
+                if (listener.Pending()) {
+                    client = listener.AcceptTcpClient();
+                    connected++;
+                    Trace.WriteLine("New client accepted");
+                    HandleClient newClient = new HandleClient();
+                    listClients.Add(newClient);
+                    newClient.startClient(client);
+                }
+                Thread.Sleep(100);
             }
+
+            Trace.WriteLine("End of threadWaitClient");
         }
 
         public void updateUserList()
@@ -89,14 +97,15 @@ namespace Server
                         {
                             App.Current.Dispatcher.Invoke(() =>
                             {
-                                Items.Add(new MyItem() { userName = "Jean"}); //item.userName });
+                                Items.Add(new MyItem() { userName = item.userName });
                             });
                         }
 
                     }
                 }
                 Thread.Sleep(100);
-            } while (true);
+            } while (!terminate);
+            Trace.WriteLine("End of threadUpdateList");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -106,14 +115,20 @@ namespace Server
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
-        ~HandleServer()
-        {
+        public void Clean() {
+            terminate = true;
+            if (threadUpdateList != null && threadUpdateList.IsAlive)
+                threadUpdateList.Join();
 
-            if (listener!=null)
+            if (threadUpdateList != null && threadWaitClient.IsAlive)
+                threadWaitClient.Join();
+
+            if (listener != null)
                 listener.Stop();
         }
 
-        
+        ~HandleServer()
+        { }
     }
 
     class MyItem
