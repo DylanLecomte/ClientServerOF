@@ -115,7 +115,7 @@ namespace Server
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
-        public void Clean() {
+        public void Clear() {
             terminate = true;
             if (threadUpdateList != null && threadUpdateList.IsAlive)
                 threadUpdateList.Join();

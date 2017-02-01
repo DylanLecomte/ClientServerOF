@@ -19,7 +19,7 @@ namespace Server
 
         public void WindowServer_Closing(object sender, CancelEventArgs e)
         {
-            myServer.Clean();
+            myServer.Clear();
         }
     }
 }
