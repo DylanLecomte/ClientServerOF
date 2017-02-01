@@ -10,10 +10,10 @@ namespace Server
         HandleServer myServer;
         public WindowServer()
         {
+            InitializeComponent();
+
             myServer = new HandleServer();
             DataContext = myServer;
-
-            InitializeComponent();
         }
     }
 }

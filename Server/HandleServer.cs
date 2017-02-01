@@ -1,7 +1,6 @@
 ﻿using GalaSoft.MvvmLight.Command;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
@@ -17,7 +16,6 @@ namespace Server
         private int connected { get; set; }
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
-        public ObservableCollection<MyItem> Items { get; set;}
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -26,6 +24,7 @@ namespace Server
             {
                 return canStartServer;
             }
+
             set
             {
                 canStartServer = value;
@@ -54,38 +53,6 @@ namespace Server
 
             Thread threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
-
-            Thread threadUpdateList= new Thread(updateUserList);
-            threadUpdateList.Start();
-
-        }
-
-        public void updateUserList()
-        {
-            do
-            {
-                if (Items.Count != listClients.Count)
-                {
-
-                    App.Current.Dispatcher.Invoke(() =>
-                    {
-                        Items.Clear();
-                    });
-
-                    foreach (var item in listClients)
-                    {
-
-                        if(item.Username != "")
-                        {
-                            App.Current.Dispatcher.Invoke(() => 
-                            {
-                                Items.Add(new MyItem() { Username = item.Username });
-                            });
-                        }
-
-                    } 
-                }
-            } while (true);
         }
 
         public void waitForClient()
@@ -98,7 +65,7 @@ namespace Server
                 Trace.WriteLine("New client accepted");
                 HandleClient newClient = new HandleClient();
                 listClients.Add(newClient);
-                newClient.startClient(client, Convert.ToString(connected));
+                newClient.startClient(client);
             }
         }
 
@@ -113,11 +80,6 @@ namespace Server
         {
             if(listener!=null)
                 listener.Stop();
-        }
-
-        public class MyItem
-        {
-            public string Username { get; set; }
         }
     }
 }

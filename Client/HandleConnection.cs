@@ -13,13 +13,26 @@ namespace Client
         private readonly TcpClient client;
         private NetworkStream networkStream;
         public string currentMessage { get; private set; }
+        public string userName { get; private set; }
+        public bool connected { get; private set; }
+        private Thread ctThread;
 
         public RelayCommand<string> SendMessageCommand { get; private set; }
 
-        public HandleConnection()
+        public HandleConnection(string _userName)
         {
+            this.userName = _userName;
             SendMessageCommand = new RelayCommand<string>(SendMessage);
             client = new TcpClient();
+        }
+
+        public void Clear(bool killThread)
+        {
+            SendMessage("LOGOUT;");
+            Thread.Sleep(1000);
+            this.client.Close();
+            if(killThread)
+                ctThread.Abort();
         }
 
         public bool Connect()
@@ -28,8 +41,9 @@ namespace Client
             {
                 client.Connect("127.0.0.1", 1337);
                 networkStream = client.GetStream();
-                Thread ctThread = new Thread(ManageConnection);
+                ctThread = new Thread(ManageConnection);
                 ctThread.Start();
+                this.connected = true;
                 return true;
             }
             catch (Exception exc)
@@ -61,7 +75,7 @@ namespace Client
                         while (networkStream.DataAvailable);
                         Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
                         currentMessage = myCompleteMessage.ToString();
-                        // Traiter trame de caractère myCompleteMessage
+                        
                     }
                 }
                 catch (Exception ex)

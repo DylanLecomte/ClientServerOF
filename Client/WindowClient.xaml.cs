@@ -11,7 +11,13 @@ namespace Client
             InitializeComponent();
 
             myConnection = connection;
+            this.Closing += WindowClient_Closing;
             DataContext = myConnection;
+        }
+
+        private void WindowClient_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            myConnection.SendMessage("LOGOUT;");
         }
     }
 }

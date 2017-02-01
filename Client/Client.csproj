@@ -75,6 +75,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ClientFrameManager.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="WindowClientConnection.xaml.cs">
       <DependentUpon>WindowClientConnection.xaml</DependentUpon>

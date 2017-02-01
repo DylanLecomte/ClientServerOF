@@ -6,7 +6,6 @@ namespace Server
 {
     class Database
     {
-
         private readonly SQLiteConnection con;
 
         public enum Error

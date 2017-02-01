@@ -10,18 +10,18 @@ namespace Server
     {
         TcpClient clientSocket;
         NetworkStream networkStream;
-        string clNo;
+        readonly ServerFrameManager serverFrameManager;
+        public string userName { get; private set; }
         private readonly Database db;
-        public string Username { get; private set; }
-
 
         public HandleClient()
         {
-            Username = "";
+            Database.Error error;
             try
             {
                 this.db = new Database();
-                this.db.connect();
+                error = db.connect();
+                this.serverFrameManager = new ServerFrameManager();
             }
             catch (Exception ex)
             {
@@ -29,19 +29,18 @@ namespace Server
             }
         }
 
-        public void startClient(TcpClient inClientSocket, string clientNo)
+        public void startClient(TcpClient inClientSocket)
         {
             this.clientSocket = inClientSocket;
-            this.clNo = clientNo;
             networkStream = clientSocket.GetStream();
             Thread ctThread = new Thread(ManageClient);
             ctThread.Start();
         }
+
         private void ManageClient()
         {
             int requestCount = 0;
-            string serverResponse = null;
-            string rCount = null;
+            string header;
             requestCount = 0;
 
             while (true)
@@ -63,34 +62,23 @@ namespace Server
 
                         }
                         while (networkStream.DataAvailable);
-
                         Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
-                        // Traiter trame de caractère myCompleteMessage
 
-                        string[] parameters;
-                        string[] stringSeparators = new string[] { ";" };
+                        header = serverFrameManager.GetFrameHeader(myCompleteMessage.ToString());
 
-       
-                        if (myCompleteMessage.ToString().Contains("Try Login"))
+                        switch (header)
                         {
-                            parameters = myCompleteMessage.ToString().Split(stringSeparators, StringSplitOptions.None);
-                            Trace.WriteLine("nb parameter : " + parameters.Length);
-                            if(db.checkLoginPwd(parameters[1], parameters[2]) == Database.Error.None)
-                            {
-                                Trace.WriteLine("Sign in successful");
-                                Username = parameters[1];
-                            }
-                            else
-                            {
-                                Trace.WriteLine("Sign in fail");
-                            }
+                            case "LOGIN":
+                                CheckLogin(myCompleteMessage.ToString());
+                                break;
+                            case "GBAL":
+                                SendBalance();
+                                break;
+                            case "UBAL":
+                                ManageBalance(myCompleteMessage.ToString());
+                                break;
                         }
                     }
-
-                    // Renvoyer trame en fonction de la trame
-                    rCount = Convert.ToString(requestCount);
-                    serverResponse = "Server to client(" + clNo + ") " + rCount;
-                    SendMessage(serverResponse);
                 }
                 catch (Exception ex)
                 {
@@ -109,6 +97,60 @@ namespace Server
                 networkStream.Write(sendBytes, 0, sendBytes.Length);
                 networkStream.Flush();
             }            
+        }
+
+        private void SendBalance()
+        {
+            Database.Error error;
+            int balance = 0;
+            error = db.getBalance(userName, ref balance);
+            if (error == Database.Error.None)
+                SendMessage(serverFrameManager.SendBalanceBuild(balance));
+            else
+                SendMessage("Error");
+        }
+
+        private void ManageBalance(string frame)
+        {
+            Database.Error error;
+            int value;
+            value = serverFrameManager.UpdatebalanceRead(frame);
+            error = db.updateBalance(userName, value);
+
+            // On log et renvoie la réponse au client
+            if (error == Database.Error.None)
+            {
+                Trace.WriteLine(userName + " updated balance");
+                SendMessage(serverFrameManager.ACKUpdateBalanceBuild(true));
+            }
+            else
+            {
+                Trace.WriteLine(userName + " failed to update balance");
+                SendMessage(serverFrameManager.ACKUpdateBalanceBuild(false));
+            }                
+        }
+
+        private void CheckLogin(string frame)
+        {
+            string login = "";
+            string password = "";
+            Database.Error error;
+            serverFrameManager.ConnectionRead(frame, ref login, ref password);
+            
+            // Tentative de connection avec le login et le mot de passe reçu
+            error = db.checkLoginPwd(login, password);
+
+            // On renvoie la réponse au client
+            SendMessage(serverFrameManager.ACKConnectionBuild(error));
+                
+            // On log
+            if (error == Database.Error.None)
+            {
+                Trace.WriteLine(login + " sign in successful");
+                userName = login;
+            }                
+            else
+                Trace.WriteLine(login + " failed to connect");
         }
 
         ~HandleClient()
