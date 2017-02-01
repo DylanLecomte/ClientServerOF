@@ -1,6 +1,7 @@
 ﻿using GalaSoft.MvvmLight.Command;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
@@ -15,8 +16,9 @@ namespace Server
         private readonly List<HandleClient> listClients = new List<HandleClient>();
         private int connected { get; set; }
         private bool acceptClients { get; set; }
-        private Database db;
+        private readonly Database db;
         public RelayCommand StartServerCommand { get; private set; }
+        public ObservableCollection<MyItem> Items { get; set;}
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -25,7 +27,6 @@ namespace Server
             {
                 return canStartServer;
             }
-
             set
             {
                 canStartServer = value;
@@ -39,9 +40,15 @@ namespace Server
             this.acceptClients = true;
             this.StartServerCommand = new RelayCommand(StartServer);
 
+            this.Items = new ObservableCollection<MyItem>();
+            this.Items.Add(new MyItem() { Username = "Tartine" });
+
+            Items.RemoveAt(0);
+
             try
             {
                 this.db = new Database();
+                this.db.connect();
             }
             catch (Exception ex)
             {
@@ -58,6 +65,38 @@ namespace Server
 
             Thread threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
+
+            Thread threadUpdateList= new Thread(updateUserList);
+            threadUpdateList.Start();
+
+        }
+
+        public void updateUserList()
+        {
+            do
+            {
+                if (Items.Count != listClients.Count)
+                {
+
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        Items.Clear();
+                    });
+
+                    foreach (var item in listClients)
+                    {
+
+                        if(item.Username != "")
+                        {
+                            App.Current.Dispatcher.Invoke(() => 
+                            {
+                                Items.Add(new MyItem() { Username = item.Username });
+                            });
+                        }
+
+                    } 
+                }
+            } while (true);
         }
 
         public void waitForClient()
@@ -85,6 +124,11 @@ namespace Server
         {
             if(listener!=null)
                 listener.Stop();
+        }
+
+        public class MyItem
+        {
+            public string Username { get; set; }
         }
     }
 }

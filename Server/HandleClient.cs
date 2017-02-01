@@ -11,13 +11,17 @@ namespace Server
         TcpClient clientSocket;
         NetworkStream networkStream;
         string clNo;
-        private Database db;
+        private readonly Database db;
+        public string Username { get; private set; }
+
 
         public HandleClient()
         {
+            Username = "";
             try
             {
                 this.db = new Database();
+                this.db.connect();
             }
             catch (Exception ex)
             {
@@ -59,6 +63,7 @@ namespace Server
 
                         }
                         while (networkStream.DataAvailable);
+
                         Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
                         // Traiter trame de caractère myCompleteMessage
 
@@ -73,10 +78,11 @@ namespace Server
                             if(db.checkLoginPwd(parameters[1], parameters[2]) == Database.Error.None)
                             {
                                 Trace.WriteLine("Sign in successful");
+                                Username = parameters[1];
                             }
                             else
                             {
-                                Trace.WriteLine("Sign in successful");
+                                Trace.WriteLine("Sign in fail");
                             }
                         }
                     }
