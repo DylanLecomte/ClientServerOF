@@ -89,7 +89,7 @@ namespace Server
                         {
                             App.Current.Dispatcher.Invoke(() =>
                             {
-                                Items.Add(new MyItem() { userName = "Jean"}); //item.userName });
+                                Items.Add(new MyItem() { userName = item.userName });
                             });
                         }
 
