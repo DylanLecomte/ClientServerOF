@@ -55,6 +55,12 @@ namespace Server
 
             Thread threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
+
+            Thread threadUpdateList = new Thread(updateUserList);
+            threadUpdateList.Start();
+
+            Thread threadDisconnection = new Thread(clientDisconnection);
+            threadUpdateList.Start();
         }
 
         public void waitForClient()
@@ -68,13 +74,10 @@ namespace Server
                 HandleClient newClient = new HandleClient();
                 listClients.Add(newClient);
                 newClient.startClient(client);
-
-                Thread threadUpdateList = new Thread(updateUserList);
-                threadUpdateList.Start();
             }
         }
 
-        public void updateUserList()
+        private void updateUserList()
         {
             do
             {
@@ -100,6 +103,11 @@ namespace Server
                     }
                 }
             } while (true);
+        }
+
+        private void clientDisconnection()
+        {
+
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

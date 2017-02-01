@@ -12,10 +12,13 @@ namespace Server
         NetworkStream networkStream;
         readonly ServerFrameManager serverFrameManager;
         public string userName { get; private set; }
+        private bool threadRunning;
+        private bool disconnection;
         private readonly Database db;
 
         public HandleClient()
         {
+            disconnection = false;
             Database.Error error;
             try
             {
@@ -42,8 +45,9 @@ namespace Server
             int requestCount = 0;
             string header;
             requestCount = 0;
+            threadRunning = true;
 
-            while (true)
+            while (!disconnection)
             {
                 try
                 {
@@ -76,6 +80,9 @@ namespace Server
                                 break;
                             case "UBAL":
                                 ManageBalance(myCompleteMessage.ToString());
+                                break;
+                            case "LOGOUT":
+                                disconnection = true;
                                 break;
                         }
                     }
