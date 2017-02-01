@@ -7,7 +7,6 @@ namespace Server
     class Database
     {
 
-        private readonly string connectionString;
         private readonly SQLiteConnection con;
 
         public enum Error
@@ -22,7 +21,7 @@ namespace Server
 
         public Database()
         {
-            connectionString = @" Data Source = " + Environment.CurrentDirectory + @"\database.db; Version = 3";
+            string connectionString = @" Data Source = " + Environment.CurrentDirectory + @"\database.db; Version = 3";
             con = new SQLiteConnection(connectionString);
         }
 
@@ -137,13 +136,9 @@ namespace Server
                     if (reader.StepCount > 1) { errorCode = Error.Duplication; }
                     if (reader.StepCount == 0) { errorCode = Error.NonExistant; }
 
-                    if (errorCode == Error.None)
-                    {
-                        if(reader.Read())
-                        {
-                            balance = reader.GetInt32(0);
-                        }
-                    }
+                    if (errorCode == Error.None && reader.Read())
+                        balance = reader.GetInt32(0);
+
                     reader.Close();
                 }
             }

@@ -16,7 +16,6 @@ namespace Server
         private readonly List<HandleClient> listClients = new List<HandleClient>();
         private int connected { get; set; }
         private bool acceptClients { get; set; }
-        private readonly Database db;
         public RelayCommand StartServerCommand { get; private set; }
         public ObservableCollection<MyItem> Items { get; set;}
 
@@ -44,16 +43,6 @@ namespace Server
             this.Items.Add(new MyItem() { Username = "Tartine" });
 
             Items.RemoveAt(0);
-
-            try
-            {
-                this.db = new Database();
-                this.db.connect();
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine("Error : " + ex.Message);
-            }
         }
 
         public void StartServer()
