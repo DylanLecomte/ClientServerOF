@@ -20,7 +20,7 @@ namespace Server
 
         public Database()
         {
-            string connectionString = @" Data Source = " + System.Reflection.Assembly.GetEntryAssembly().Location + @"\database.db; Version = 3";
+            string connectionString = @" Data Source = " + Environment.CurrentDirectory + @"\database.db; Version = 3";
             con = new SQLiteConnection(connectionString);
         }
 
@@ -136,9 +136,8 @@ namespace Server
                     if (reader.StepCount == 0) { errorCode = Error.NonExistant; }
 
                     if (errorCode == Error.None && reader.Read())
-                    {
                         balance = reader.GetInt32(0);
-                    }
+
                     reader.Close();
                 }
             }

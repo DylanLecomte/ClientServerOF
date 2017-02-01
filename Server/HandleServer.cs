@@ -37,18 +37,11 @@ namespace Server
             this.connected = 0;
             this.acceptClients = true;
             this.StartServerCommand = new RelayCommand(StartServer);
-            Database db;
-            Database.Error error;
 
-            try
-            {
-                db = new Database();
-                error=db.connect();
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine("Error : " + ex.Message);
-            }
+            this.Items = new ObservableCollection<MyItem>();
+            this.Items.Add(new MyItem() { Username = "Tartine" });
+
+            Items.RemoveAt(0);
         }
 
         public void StartServer()
