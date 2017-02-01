@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 
 namespace Server
 {
@@ -14,6 +15,11 @@ namespace Server
             DataContext = myServer;
 
             InitializeComponent();
+        }
+
+        public void WindowServer_Closing(object sender, CancelEventArgs e)
+        {
+            myServer.Clear();
         }
     }
 }
