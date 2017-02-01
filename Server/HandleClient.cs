@@ -77,6 +77,9 @@ namespace Server
                             case "UBAL":
                                 ManageBalance(myCompleteMessage.ToString());
                                 break;
+                            case "LOGOUT":
+                                // deco client
+                                break;
                         }
                     }
                 }

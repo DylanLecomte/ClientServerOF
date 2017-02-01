@@ -17,7 +17,8 @@ namespace Client
 
         private void WindowClient_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            myConnection.SendMessage("LOGOUT;");
+            if(myConnection.connected)
+                myConnection.Clear();            
         }
     }
 }

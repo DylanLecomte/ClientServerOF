@@ -30,9 +30,6 @@ namespace Client
             // tentative de connexion au serveur
             if(myConnection.Connect())
             {
-                Thread threadWaitClient = new Thread(myConnection.ManageConnection);
-                threadWaitClient.Start();
-
                 myConnection.SendMessage(clientFrameManager.ConnectionBuild(Login, Password));
 
                 Thread.Sleep(1000);
@@ -40,23 +37,24 @@ namespace Client
                 switch (clientFrameManager.ACKConnectionRead(myConnection.currentMessage))
                 {
                     case "Ok":
+                        myConnection.SendMessage(clientFrameManager.GetBalanceBuild());
                         windowClient = new WindowClient(myConnection);
                         windowClient.Show();
                         windowClientConnection.Close();
                         break;
 
                     case "Unknown":
-                        myConnection.Clear(true);
+                        myConnection.Clear();
                         windowClientConnection.displayMessage("Identifiant incorrect");
                         break;
 
                     case "PasswordFalse":
-                        myConnection.Clear(true);
+                        myConnection.Clear();
                         windowClientConnection.displayMessage("Mot de passe incorrect");
                         break;
 
                     default:
-                        myConnection.Clear(true);
+                        myConnection.Clear();
                         windowClientConnection.displayMessage("Erreur lors de la connection à la base de données");
                         break;
                 }
@@ -64,7 +62,7 @@ namespace Client
             // echec connection au serveur
             else
             {
-                myConnection.Clear(false);
+                myConnection.Clear();
                 Trace.WriteLine("Erreur lors de la connection au serveur");
             }            
         }
