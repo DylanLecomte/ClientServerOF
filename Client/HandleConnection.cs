@@ -14,6 +14,7 @@ namespace Client
         private NetworkStream networkStream;
         public string currentMessage { get; private set; }
         public string userName { get; private set; }
+        public bool connected { get; private set; }
         private Thread ctThread;
 
         public RelayCommand<string> SendMessageCommand { get; private set; }
@@ -27,6 +28,8 @@ namespace Client
 
         public void Clear(bool killThread)
         {
+            SendMessage("LOGOUT;");
+            Thread.Sleep(1000);
             this.client.Close();
             if(killThread)
                 ctThread.Abort();
@@ -40,6 +43,7 @@ namespace Client
                 networkStream = client.GetStream();
                 ctThread = new Thread(ManageConnection);
                 ctThread.Start();
+                this.connected = true;
                 return true;
             }
             catch (Exception exc)
@@ -71,7 +75,7 @@ namespace Client
                         while (networkStream.DataAvailable);
                         Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
                         currentMessage = myCompleteMessage.ToString();
-                        // Traiter trame de caractère myCompleteMessage
+                        
                     }
                 }
                 catch (Exception ex)

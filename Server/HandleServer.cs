@@ -15,7 +15,6 @@ namespace Server
         private readonly List<HandleClient> listClients = new List<HandleClient>();
         private int connected { get; set; }
         private bool acceptClients { get; set; }
-        private Database db;
         public RelayCommand StartServerCommand { get; private set; }
 
         private bool canStartServer=true;
@@ -38,10 +37,13 @@ namespace Server
             this.connected = 0;
             this.acceptClients = true;
             this.StartServerCommand = new RelayCommand(StartServer);
+            Database db;
+            Database.Error error;
 
             try
             {
-                this.db = new Database();
+                db = new Database();
+                error=db.connect();
             }
             catch (Exception ex)
             {
@@ -70,7 +72,7 @@ namespace Server
                 Trace.WriteLine("New client accepted");
                 HandleClient newClient = new HandleClient();
                 listClients.Add(newClient);
-                newClient.startClient(client, Convert.ToString(connected));
+                newClient.startClient(client);
             }
         }
 

@@ -16,9 +16,11 @@ namespace Server
 
         public HandleClient()
         {
+            Database.Error error;
             try
             {
                 this.db = new Database();
+                error = db.connect();
                 this.serverFrameManager = new ServerFrameManager();
             }
             catch (Exception ex)
@@ -34,6 +36,7 @@ namespace Server
             Thread ctThread = new Thread(ManageClient);
             ctThread.Start();
         }
+
         private void ManageClient()
         {
             int requestCount = 0;
