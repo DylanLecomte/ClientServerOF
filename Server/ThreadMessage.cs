@@ -8,7 +8,6 @@ namespace Server
         {
             Connection,
             Disconnection,
-            Set,
             Update
         }
 

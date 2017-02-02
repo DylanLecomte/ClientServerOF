@@ -121,7 +121,7 @@ namespace Server
                                 });
                             }
                             break;
-                        case ThreadMessage.Action.Set:
+                        case ThreadMessage.Action.Update:
                             var ItemToSet = Items.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
                             if (ItemToSet != null)
                             {
@@ -130,16 +130,6 @@ namespace Server
                                     ItemToSet.Balance = CurrentMsg.Balance;
                                 });
                             }
-                            break;
-                        case ThreadMessage.Action.Update:
-                            var ItemToUpdate = Items.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
-                            if (ItemToUpdate != null)
-                            {
-                                App.Current.Dispatcher.Invoke(() =>
-                                {
-                                    ItemToUpdate.Balance = ((int.Parse(ItemToUpdate.Balance)) + (int.Parse(CurrentMsg.Balance))).ToString() ;
-                                });
-                            }       
                             break;
                         default:
                             break;

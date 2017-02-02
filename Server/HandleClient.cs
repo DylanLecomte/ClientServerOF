@@ -126,8 +126,8 @@ namespace Server
             {
                 SendMessage(serverFrameManager.SendBalanceBuild(Balance));
 
-                // Envoie d'un message pour redéfinir du solde au thread principal
-                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Set, Username, Balance.ToString()));
+                // Envoie d'un message de mise à jour du solde au thread principal
+                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Update, Username, Balance.ToString()));
             }
             else
                 SendMessage("Error");
@@ -145,9 +145,6 @@ namespace Server
             {
                 Trace.WriteLine(Username + " updated balance");
                 SendMessage(serverFrameManager.ACKUpdateBalanceBuild(true));
-
-                // Envoie d'un message de mise à jour du solde au thread principal
-                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Update, Username, value.ToString()));
             }
             else
             {
