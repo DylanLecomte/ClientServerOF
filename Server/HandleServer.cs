@@ -55,8 +55,9 @@ namespace Server
             threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
 
-            threadUpdateList = new Thread(updateUserList);
+            Thread threadUpdateList = new Thread(updateUserList);
             threadUpdateList.Start();
+
         }
 
         public void waitForClient()
@@ -78,10 +79,11 @@ namespace Server
             Trace.WriteLine("End of threadWaitClient");
         }
 
-        public void updateUserList()
+        private void updateUserList()
         {
             do
             {
+                clientDisconnection();
                 if (Items.Count != listClients.Count)
                 {
 
@@ -91,7 +93,7 @@ namespace Server
                     });
 
                     foreach (var item in listClients)
-                    {
+                    { 
 
                         if (item.userName != null)
                         {
@@ -106,6 +108,17 @@ namespace Server
                 Thread.Sleep(100);
             } while (!terminate);
             Trace.WriteLine("End of threadUpdateList");
+        }
+
+        private void clientDisconnection()
+        {
+            foreach (var item in listClients)
+            {
+                if (item.disconnection == true)
+                {
+                    listClients.Remove(item);
+                }
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
