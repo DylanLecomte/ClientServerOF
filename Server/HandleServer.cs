@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight.Command;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,6 +7,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Linq;
 
 namespace Server
 {
@@ -16,11 +18,11 @@ namespace Server
         private int connected { get; set; }
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
-        public ObservableCollection<MyItem> Items { get; set; }
+        public ObservableCollection<ListViewItem> Items { get; set; }
         private bool terminate = false;
+        private ConcurrentQueue<ThreadMessage> ActionQueue = new ConcurrentQueue<ThreadMessage>();
         private Thread threadWaitClient;
-        private Thread threadUpdateList;
-
+        private Thread threadMessageProcess;
         private bool canStartServer=true;
         public bool CanStartServer
         {
@@ -42,7 +44,7 @@ namespace Server
             this.acceptClients = true;
             this.StartServerCommand = new RelayCommand(StartServer);
 
-            this.Items = new ObservableCollection<MyItem>();
+            this.Items = new ObservableCollection<ListViewItem>();
         }
 
         public void StartServer()
@@ -55,8 +57,8 @@ namespace Server
             threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
 
-            threadUpdateList = new Thread(updateUserList);
-            threadUpdateList.Start();
+            threadMessageProcess = new Thread(MessageProcess);
+            threadMessageProcess.Start();
 
         }
 
@@ -69,7 +71,7 @@ namespace Server
                     client = listener.AcceptTcpClient();
                     connected++;
                     Trace.WriteLine("New client accepted");
-                    HandleClient newClient = new HandleClient();
+                    HandleClient newClient = new HandleClient(ref ActionQueue);
                     listClients.Add(newClient);
                     newClient.startClient(client);
                 }
@@ -79,52 +81,56 @@ namespace Server
             Trace.WriteLine("End of threadWaitClient");
         }
 
-        private void updateUserList()
+
+        private void MessageProcess()
         {
-            do
-            {
-                clientDisconnection();
-                if (Items.Count != listClients.Count)
+            ThreadMessage CurrentMsg;
+
+            while (!terminate) {
+                if (ActionQueue.TryDequeue(out CurrentMsg))
                 {
-
-                    App.Current.Dispatcher.Invoke(() =>
+                    switch (CurrentMsg.ActionMsg)
                     {
-                        Items.Clear();
-                    });
-
-                    foreach (var item in listClients)
-                    { 
-
-                        if (item.userName != null)
-                        {
+                        case ThreadMessage.Action.Connection:
                             App.Current.Dispatcher.Invoke(() =>
                             {
-                                Items.Add(new MyItem() { userName = item.userName });
+                                Items.Add(new ListViewItem()
+                                {
+                                    Username = CurrentMsg.Username,
+                                    Balance = CurrentMsg.Balance
+                                });
                             });
-                        }
-
+                            break;
+                        case ThreadMessage.Action.Disconnection:
+                            var ClientToSupp = listClients.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
+                            if (ClientToSupp != null)
+                            {
+                                listClients.Remove(ClientToSupp);
+                            }
+                            var ItemToSupp = Items.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
+                            if (ItemToSupp != null)
+                            {
+                                App.Current.Dispatcher.Invoke(() =>
+                                {
+                                    Items.Remove(ItemToSupp);
+                                });
+                            }
+                            break;
+                        case ThreadMessage.Action.Update:
+                            var ItemToUpdate = Items.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
+                            if (ItemToUpdate != null)
+                            {
+                                App.Current.Dispatcher.Invoke(() =>
+                                {
+                                    ItemToUpdate.Balance = CurrentMsg.Balance;
+                                });
+                            }       
+                            break;
+                        default:
+                            break;
                     }
                 }
-                Thread.Sleep(100);
-            } while (!terminate);
-            Trace.WriteLine("End of threadUpdateList");
-        }
-
-        private void clientDisconnection()
-        {
-            List<HandleClient> listClientsSupp = new List<HandleClient>();
-
-            foreach (var item in listClients)
-            {
-                if (item.disconnection == true)
-                {
-                    listClientsSupp.Add(item);
-                }
-            }
-
-            foreach (var item in listClientsSupp)
-            {
-                    listClients.Remove(item);
+                Thread.Sleep(50);
             }
         }
 
@@ -137,10 +143,10 @@ namespace Server
 
         public void Clear() {
             terminate = true;
-            if (threadUpdateList != null && threadUpdateList.IsAlive)
-                threadUpdateList.Join();
+            if (threadMessageProcess != null && threadMessageProcess.IsAlive)
+                threadMessageProcess.Join();
 
-            if (threadUpdateList != null && threadWaitClient.IsAlive)
+            if (threadWaitClient != null && threadWaitClient.IsAlive)
                 threadWaitClient.Join();
 
             if (listener != null)
@@ -151,8 +157,5 @@ namespace Server
         { }
     }
 
-    class MyItem
-    {
-        public string userName { get; set; }
-    }
+    
 }

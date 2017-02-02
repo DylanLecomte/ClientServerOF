@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
@@ -11,14 +12,14 @@ namespace Server
         TcpClient clientSocket;
         NetworkStream networkStream;
         readonly ServerFrameManager serverFrameManager;
-        public string userName { get; private set; }
+        public string Username { get; private set; }
         private bool threadRunning { get; set; }
-        public bool disconnection { get; private set; }
         private readonly Database db;
+        private ConcurrentQueue<ThreadMessage> ActionQueue;
 
-        public HandleClient()
+        public HandleClient(ref ConcurrentQueue<ThreadMessage> Queue)
         {
-            disconnection = false;
+            ActionQueue = Queue;
             Database.Error error;
             try
             {
@@ -82,8 +83,13 @@ namespace Server
                                 ManageBalance(myCompleteMessage.ToString());
                                 break;
                             case "LOGOUT":
-                                disconnection = true;
                                 threadRunning = false;
+                                ActionQueue.Enqueue(new ThreadMessage()
+                                {
+                                    ActionMsg = ThreadMessage.Action.Disconnection,
+                                    Username = Username,
+                                    Balance = ""
+                                });
 
                                 break;
                         }
@@ -111,10 +117,20 @@ namespace Server
         private void SendBalance()
         {
             Database.Error error;
-            int balance = 0;
-            error = db.getBalance(userName, ref balance);
+            int Balance = 0;
+            error = db.getBalance(Username, ref Balance);
             if (error == Database.Error.None)
-                SendMessage(serverFrameManager.SendBalanceBuild(balance));
+            {
+                SendMessage(serverFrameManager.SendBalanceBuild(Balance));
+
+                // Envoie d'un message de mise à jour du solde au thread principal
+                ActionQueue.Enqueue(new ThreadMessage()
+                {
+                    ActionMsg = ThreadMessage.Action.Update,
+                    Username = Username,
+                    Balance = Balance.ToString()
+                });
+            }
             else
                 SendMessage("Error");
         }
@@ -124,17 +140,17 @@ namespace Server
             Database.Error error;
             int value;
             value = serverFrameManager.UpdatebalanceRead(frame);
-            error = db.updateBalance(userName, value);
+            error = db.updateBalance(Username, value);
 
             // On log et renvoie la réponse au client
             if (error == Database.Error.None)
             {
-                Trace.WriteLine(userName + " updated balance");
+                Trace.WriteLine(Username + " updated balance");
                 SendMessage(serverFrameManager.ACKUpdateBalanceBuild(true));
             }
             else
             {
-                Trace.WriteLine(userName + " failed to update balance");
+                Trace.WriteLine(Username + " failed to update balance");
                 SendMessage(serverFrameManager.ACKUpdateBalanceBuild(false));
             }                
         }
@@ -156,7 +172,14 @@ namespace Server
             if (error == Database.Error.None)
             {
                 Trace.WriteLine(login + " sign in successful");
-                userName = login;
+                Username = login;
+
+                // Envoie d'un message de connection au thread principal
+                ActionQueue.Enqueue(new ThreadMessage() {
+                    ActionMsg = ThreadMessage.Action.Connection,
+                    Username = login,
+                    Balance = "loading..."                    
+                });
             }                
             else
                 Trace.WriteLine(login + " failed to connect");
