@@ -26,7 +26,8 @@
         <ListView x:Name="listUsers" Grid.Column="0" Grid.Row="2" Margin="20" ItemsSource="{Binding Items}">
             <ListView.View >
                 <GridView>
-                    <GridViewColumn Header="Username" Width="auto" DisplayMemberBinding="{Binding userName}"/>
+                    <GridViewColumn Header="Username" Width="235" DisplayMemberBinding="{Binding Username}"/>
+                    <GridViewColumn Header="Balance" Width="235" DisplayMemberBinding="{Binding Balance}"/>
                 </GridView>
             </ListView.View>
         </ListView>
