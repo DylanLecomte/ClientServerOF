@@ -55,7 +55,7 @@ namespace Server
             threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
 
-            Thread threadUpdateList = new Thread(updateUserList);
+            threadUpdateList = new Thread(updateUserList);
             threadUpdateList.Start();
 
         }
@@ -112,12 +112,19 @@ namespace Server
 
         private void clientDisconnection()
         {
+            List<HandleClient> listClientsSupp = new List<HandleClient>();
+
             foreach (var item in listClients)
             {
                 if (item.disconnection == true)
                 {
-                    listClients.Remove(item);
+                    listClientsSupp.Add(item);
                 }
+            }
+
+            foreach (var item in listClientsSupp)
+            {
+                    listClients.Remove(item);
             }
         }
 
