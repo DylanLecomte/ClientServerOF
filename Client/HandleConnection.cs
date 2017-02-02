@@ -1,6 +1,5 @@
-﻿using GalaSoft.MvvmLight.Command;
+﻿using GalaSoft.MvvmLight.CommandWpf;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
@@ -15,19 +14,31 @@ namespace Client
         public string currentMessage { get; private set; }
         public bool connected { get; private set; }
         public bool valideThread { get; private set; }
-        private readonly User user;
+        public int betValue { get; set; }
+        private bool userCanBet;
+
+        public bool UserCanBet
+        {
+            get { return userCanBet; }
+            set { userCanBet = value; }
+        }
+
+        public User user { get;}
         private readonly ClientFrameManager clientFrameManager;
         private Thread ctThread;
 
         public RelayCommand<string> SendMessageCommand { get; private set; }
+        public RelayCommand BetCommand { get; private set; }
 
         public HandleConnection(string _userName)
         {
             user = new User(_userName);
             SendMessageCommand = new RelayCommand<string>(SendMessage);
+            BetCommand = new RelayCommand(Bet, CanBet);
             client = new TcpClient();
             clientFrameManager = new ClientFrameManager();
             valideThread = true;
+            UserCanBet = true;
         }
 
         public void Clear()
@@ -80,7 +91,7 @@ namespace Client
 
                         }
                         while (networkStream.DataAvailable);
-                        Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
+                        //Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
                         currentMessage = myCompleteMessage.ToString();
 
                         header = clientFrameManager.GetFrameHeader(currentMessage);
@@ -106,14 +117,15 @@ namespace Client
 
         public void getBalance(string message)
         {
-            user.balance = clientFrameManager.SendBalanceRead(message);
-            Trace.WriteLine("Balance updated : " + user.balance.ToString());
+            user.Balance = clientFrameManager.SendBalanceRead(message);
+            Trace.WriteLine("Balance : " + user.Balance.ToString());
         }
 
         public bool ACKBalance(string message)
         {
             if(clientFrameManager.ACKUpdateBalanceBuild(message))
             {
+                SendMessage(clientFrameManager.GetBalanceBuild());
                 Trace.WriteLine("ACK update balance OK");
                 return true;
             }
@@ -134,6 +146,38 @@ namespace Client
                 networkStream.Write(sendBytes, 0, sendBytes.Length);
                 networkStream.Flush();
             }
+        }
+
+        public void Bet()
+        {
+            Trace.WriteLine("");
+            UserCanBet = false;
+            SendMessage(clientFrameManager.UpdatebalanceBuild(-betValue));
+            Trace.WriteLine("Bet of : " + betValue.ToString());
+
+            Thread.Sleep(1000);
+            play();
+        }
+
+        public bool CanBet()
+        {
+            return betValue >=1 && UserCanBet && betValue<=user.Balance;
+        }
+
+        public void play()
+        {
+            Random gen = new Random();
+            int prob = gen.Next(100);
+            
+            if (prob <= 50)
+            {
+                SendMessage(clientFrameManager.UpdatebalanceBuild(betValue * 2));
+                Trace.WriteLine("Partie gagnée !");
+            }
+            else
+                Trace.WriteLine("Partie perdue !");
+
+            UserCanBet = true;
         }
     }
 }
