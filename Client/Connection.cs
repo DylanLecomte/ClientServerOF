@@ -45,25 +45,26 @@ namespace Client
 
                     case "Unknown":
                         myConnection.Clear();
-                        windowClientConnection.displayMessage("Identifiant incorrect");
+                        windowClientConnection.displayMessage("Username incorrect");
                         break;
 
                     case "PasswordFalse":
                         myConnection.Clear();
-                        windowClientConnection.displayMessage("Mot de passe incorrect");
+                        windowClientConnection.displayMessage("Password incorrect");
                         break;
 
                     default:
                         myConnection.Clear();
-                        windowClientConnection.displayMessage("Erreur lors de la connection à la base de données");
+                        windowClientConnection.displayMessage("Error when trying to connect to the database");
                         break;
                 }
             }
             // echec connection au serveur
             else
             {
+                windowClientConnection.displayMessage("Impossible de se connecter au serveur");
                 myConnection.Clear();
-                Trace.WriteLine("Erreur lors de la connection au serveur");
+                Trace.WriteLine("Error when trying to connect to the server");
             }            
         }
 
