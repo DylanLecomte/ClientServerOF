@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:Server"
         mc:Ignorable="d"
         Title="Server" Height="350" Width="525" 
+        Closing="WindowServer_Closing"
         d:DataContext="{d:DesignInstance Type={x:Type local:HandleServer}, IsDesignTimeCreatable=False}">
     
     <Grid>
@@ -25,7 +26,7 @@
         <ListView x:Name="listUsers" Grid.Column="0" Grid.Row="2" Margin="20" ItemsSource="{Binding Items}">
             <ListView.View >
                 <GridView>
-                    <GridViewColumn Header="Username" Width="auto" DisplayMemberBinding="{Binding Username}"/>
+                    <GridViewColumn Header="Username" Width="auto" DisplayMemberBinding="{Binding userName}"/>
                 </GridView>
             </ListView.View>
         </ListView>

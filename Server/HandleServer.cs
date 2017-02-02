@@ -1,5 +1,4 @@
 ﻿using GalaSoft.MvvmLight.Command;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,7 +16,10 @@ namespace Server
         private int connected { get; set; }
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
-        ObservableCollection<MyItem> Items;
+        public ObservableCollection<MyItem> Items { get; set; }
+        private bool terminate = false;
+        private Thread threadWaitClient;
+        private Thread threadUpdateList;
 
         private bool canStartServer=true;
         public bool CanStartServer
@@ -41,9 +43,6 @@ namespace Server
             this.StartServerCommand = new RelayCommand(StartServer);
 
             this.Items = new ObservableCollection<MyItem>();
-            this.Items.Add(new MyItem() { Username = "Tartine" });
-
-            Items.RemoveAt(0);
         }
 
         public void StartServer()
@@ -53,28 +52,31 @@ namespace Server
             Trace.WriteLine("Server started");
             CanStartServer = false;
 
-            Thread threadWaitClient = new Thread(waitForClient);
+            threadWaitClient = new Thread(waitForClient);
             threadWaitClient.Start();
 
             Thread threadUpdateList = new Thread(updateUserList);
             threadUpdateList.Start();
 
-            Thread threadDisconnection = new Thread(clientDisconnection);
-            threadUpdateList.Start();
         }
 
         public void waitForClient()
         {
             TcpClient client;
-            while (acceptClients)
+            while (acceptClients && !terminate)
             {
-                client = listener.AcceptTcpClient();
-                connected++;
-                Trace.WriteLine("New client accepted");
-                HandleClient newClient = new HandleClient();
-                listClients.Add(newClient);
-                newClient.startClient(client);
+                if (listener.Pending()) {
+                    client = listener.AcceptTcpClient();
+                    connected++;
+                    Trace.WriteLine("New client accepted");
+                    HandleClient newClient = new HandleClient();
+                    listClients.Add(newClient);
+                    newClient.startClient(client);
+                }
+                Thread.Sleep(100);
             }
+
+            Trace.WriteLine("End of threadWaitClient");
         }
 
         private void updateUserList()
@@ -93,17 +95,19 @@ namespace Server
                     foreach (var item in listClients)
                     { 
 
-                        if (item.userName != "")
+                        if (item.userName != null)
                         {
                             App.Current.Dispatcher.Invoke(() =>
                             {
-                                Items.Add(new MyItem() { Username = item.userName });
+                                Items.Add(new MyItem() { userName = item.userName });
                             });
                         }
 
                     }
                 }
-            } while (true);
+                Thread.Sleep(100);
+            } while (!terminate);
+            Trace.WriteLine("End of threadUpdateList");
         }
 
         private void clientDisconnection()
@@ -124,15 +128,24 @@ namespace Server
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
-        ~HandleServer()
-        {
-            if(listener!=null)
+        public void Clear() {
+            terminate = true;
+            if (threadUpdateList != null && threadUpdateList.IsAlive)
+                threadUpdateList.Join();
+
+            if (threadUpdateList != null && threadWaitClient.IsAlive)
+                threadWaitClient.Join();
+
+            if (listener != null)
                 listener.Stop();
         }
 
-        class MyItem
-        {
-            public string Username;
-        }
+        ~HandleServer()
+        { }
+    }
+
+    class MyItem
+    {
+        public string userName { get; set; }
     }
 }

@@ -84,6 +84,7 @@ namespace Server
                             case "LOGOUT":
                                 disconnection = true;
                                 threadRunning = false;
+
                                 break;
                         }
                     }
