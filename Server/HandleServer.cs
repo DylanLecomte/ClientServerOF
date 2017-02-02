@@ -19,10 +19,10 @@ namespace Server
         private bool acceptClients { get; set; }
         public RelayCommand StartServerCommand { get; private set; }
         public ObservableCollection<ListViewItem> Items { get; set; }
-        private bool terminate = false;
         private ConcurrentQueue<ThreadMessage> ActionQueue = new ConcurrentQueue<ThreadMessage>();
         private Thread threadWaitClient;
         private Thread threadMessageProcess;
+        private CancellationTokenSource CancelTokenSource;
         private bool canStartServer=true;
         public bool CanStartServer
         {
@@ -45,6 +45,7 @@ namespace Server
             this.StartServerCommand = new RelayCommand(StartServer);
 
             this.Items = new ObservableCollection<ListViewItem>();
+            this.CancelTokenSource = new CancellationTokenSource();
         }
 
         public void StartServer()
@@ -54,24 +55,28 @@ namespace Server
             Trace.WriteLine("Server started");
             CanStartServer = false;
 
-            threadWaitClient = new Thread(waitForClient);
+            threadWaitClient = new Thread(() => waitForClient(CancelTokenSource.Token));
+
             threadWaitClient.Start();
 
-            threadMessageProcess = new Thread(MessageProcess);
+            threadMessageProcess = new Thread(() => MessageProcessing(CancelTokenSource.Token));
             threadMessageProcess.Start();
 
         }
 
-        public void waitForClient()
+        public void waitForClient(CancellationToken cancelToken)
         {
             TcpClient client;
-            while (acceptClients && !terminate)
+            while (acceptClients)
             {
+                if (cancelToken.IsCancellationRequested)
+                    return;
+
                 if (listener.Pending()) {
                     client = listener.AcceptTcpClient();
                     connected++;
                     Trace.WriteLine("New client accepted");
-                    HandleClient newClient = new HandleClient(ref ActionQueue);
+                    HandleClient newClient = new HandleClient(ref ActionQueue, CancelTokenSource.Token);
                     listClients.Add(newClient);
                     newClient.startClient(client);
                 }
@@ -82,11 +87,15 @@ namespace Server
         }
 
 
-        private void MessageProcess()
+        private void MessageProcessing(CancellationToken cancelToken)
         {
             ThreadMessage CurrentMsg;
 
-            while (!terminate) {
+            while (true) {
+
+                if (cancelToken.IsCancellationRequested)
+                    return;
+
                 if (ActionQueue.TryDequeue(out CurrentMsg))
                 {
                     switch (CurrentMsg.ActionMsg)
@@ -94,11 +103,7 @@ namespace Server
                         case ThreadMessage.Action.Connection:
                             App.Current.Dispatcher.Invoke(() =>
                             {
-                                Items.Add(new ListViewItem()
-                                {
-                                    Username = CurrentMsg.Username,
-                                    Balance = CurrentMsg.Balance
-                                });
+                                Items.Add(new ListViewItem(CurrentMsg.Username, CurrentMsg.Balance));
                             });
                             break;
                         case ThreadMessage.Action.Disconnection:
@@ -116,13 +121,23 @@ namespace Server
                                 });
                             }
                             break;
+                        case ThreadMessage.Action.Set:
+                            var ItemToSet = Items.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
+                            if (ItemToSet != null)
+                            {
+                                App.Current.Dispatcher.Invoke(() =>
+                                {
+                                    ItemToSet.Balance = CurrentMsg.Balance;
+                                });
+                            }
+                            break;
                         case ThreadMessage.Action.Update:
                             var ItemToUpdate = Items.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
                             if (ItemToUpdate != null)
                             {
                                 App.Current.Dispatcher.Invoke(() =>
                                 {
-                                    ItemToUpdate.Balance = CurrentMsg.Balance;
+                                    ItemToUpdate.Balance = ((int.Parse(ItemToUpdate.Balance)) + (int.Parse(CurrentMsg.Balance))).ToString() ;
                                 });
                             }       
                             break;
@@ -142,15 +157,22 @@ namespace Server
         }
 
         public void Clear() {
-            terminate = true;
+            CancelTokenSource.Cancel();
+
             if (threadMessageProcess != null && threadMessageProcess.IsAlive)
                 threadMessageProcess.Join();
-
             if (threadWaitClient != null && threadWaitClient.IsAlive)
                 threadWaitClient.Join();
+            
+            foreach(var item in listClients)
+            {
+                item.Clear();
+            }
 
             if (listener != null)
                 listener.Stop();
+            CancelTokenSource.Dispose();
+
         }
 
         ~HandleServer()

@@ -8,7 +8,15 @@ namespace Server
         {
             Connection,
             Disconnection,
+            Set,
             Update
+        }
+
+        public ThreadMessage(Action ActionMsg, string Username, string Balance)
+        {
+            this.ActionMsg = ActionMsg;
+            this.Username = Username;
+            this.Balance = Balance;
         }
 
         public Action ActionMsg { get; set; }

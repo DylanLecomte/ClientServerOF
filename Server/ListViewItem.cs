@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace Server
 {
@@ -12,6 +7,12 @@ namespace Server
         private string m_Username;
         private string m_Balance;
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public ListViewItem(string Username, string Balance)
+        {
+            this.Username = Username;
+            this.Balance = Balance;
+        }
 
         public string Username
         {
