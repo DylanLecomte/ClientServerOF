@@ -12,8 +12,8 @@ namespace Server
         NetworkStream networkStream;
         readonly ServerFrameManager serverFrameManager;
         public string userName { get; private set; }
-        private bool threadRunning;
-        private bool disconnection;
+        private bool threadRunning { get; set; }
+        public bool disconnection { get; private set; }
         private readonly Database db;
 
         public HandleClient()
@@ -47,7 +47,7 @@ namespace Server
             requestCount = 0;
             threadRunning = true;
 
-            while (!disconnection)
+            while (threadRunning)
             {
                 try
                 {
@@ -83,6 +83,7 @@ namespace Server
                                 break;
                             case "LOGOUT":
                                 disconnection = true;
+                                threadRunning = false;
                                 break;
                         }
                     }

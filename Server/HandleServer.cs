@@ -81,6 +81,7 @@ namespace Server
         {
             do
             {
+                clientDisconnection();
                 if (Items.Count != listClients.Count)
                 {
 
@@ -90,7 +91,7 @@ namespace Server
                     });
 
                     foreach (var item in listClients)
-                    {
+                    { 
 
                         if (item.userName != "")
                         {
@@ -107,7 +108,13 @@ namespace Server
 
         private void clientDisconnection()
         {
-
+            foreach (var item in listClients)
+            {
+                if (item.disconnection == true)
+                {
+                    listClients.Remove(item);
+                }
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
