@@ -14,12 +14,16 @@ namespace Server
         readonly ServerFrameManager serverFrameManager;
         public string Username { get; private set; }
         private bool threadRunning { get; set; }
+        private CancellationToken cancelToken;
+        private Thread ctThread;
         private readonly Database db;
+
         private ConcurrentQueue<ThreadMessage> ActionQueue;
 
-        public HandleClient(ref ConcurrentQueue<ThreadMessage> Queue)
+        public HandleClient(ref ConcurrentQueue<ThreadMessage> Queue, CancellationToken cancelToken)
         {
             ActionQueue = Queue;
+            this.cancelToken = cancelToken;
             Database.Error error;
             try
             {
@@ -37,7 +41,7 @@ namespace Server
         {
             this.clientSocket = inClientSocket;
             networkStream = clientSocket.GetStream();
-            Thread ctThread = new Thread(ManageClient);
+            ctThread = new Thread(ManageClient);
             ctThread.Start();
         }
 
@@ -50,6 +54,11 @@ namespace Server
 
             while (threadRunning)
             {
+                if (cancelToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 try
                 {
                     requestCount++;
@@ -84,13 +93,7 @@ namespace Server
                                 break;
                             case "LOGOUT":
                                 threadRunning = false;
-                                ActionQueue.Enqueue(new ThreadMessage()
-                                {
-                                    ActionMsg = ThreadMessage.Action.Disconnection,
-                                    Username = Username,
-                                    Balance = ""
-                                });
-
+                                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Disconnection, Username, ""));
                                 break;
                         }
                     }
@@ -124,12 +127,7 @@ namespace Server
                 SendMessage(serverFrameManager.SendBalanceBuild(Balance));
 
                 // Envoie d'un message de mise à jour du solde au thread principal
-                ActionQueue.Enqueue(new ThreadMessage()
-                {
-                    ActionMsg = ThreadMessage.Action.Update,
-                    Username = Username,
-                    Balance = Balance.ToString()
-                });
+                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Update, Username, Balance.ToString()));
             }
             else
                 SendMessage("Error");
@@ -175,14 +173,18 @@ namespace Server
                 Username = login;
 
                 // Envoie d'un message de connection au thread principal
-                ActionQueue.Enqueue(new ThreadMessage() {
-                    ActionMsg = ThreadMessage.Action.Connection,
-                    Username = login,
-                    Balance = "loading..."                    
-                });
+                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Connection, Username, "Loading..."));
             }                
             else
                 Trace.WriteLine(login + " failed to connect");
+        }
+
+        public void Clear()
+        {
+            if (ctThread != null && ctThread.IsAlive)
+                ctThread.Join();
+            clientSocket.Close();
+            networkStream.Close();
         }
 
         ~HandleClient()
