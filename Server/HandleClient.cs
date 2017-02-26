@@ -14,16 +14,14 @@ namespace Server
         readonly ServerFrameManager serverFrameManager;
         public string Username { get; private set; }
         private bool threadRunning { get; set; }
-        private CancellationToken cancelToken;
         private Thread ctThread;
         private readonly Database db;
 
         private ConcurrentQueue<ThreadMessage> ActionQueue;
 
-        public HandleClient(ref ConcurrentQueue<ThreadMessage> Queue, CancellationToken cancelToken)
+        public HandleClient(ref ConcurrentQueue<ThreadMessage> Queue)
         {
             ActionQueue = Queue;
-            this.cancelToken = cancelToken;
             Database.Error error;
             try
             {
@@ -54,10 +52,6 @@ namespace Server
 
             while (threadRunning)
             {
-                if (cancelToken.IsCancellationRequested)
-                {
-                    return;
-                }
 
                 try
                 {
@@ -182,7 +176,7 @@ namespace Server
         public void Clear()
         {
             if (ctThread != null && ctThread.IsAlive)
-                ctThread.Join();
+                ctThread.Abort();
             clientSocket.Close();
             networkStream.Close();
         }

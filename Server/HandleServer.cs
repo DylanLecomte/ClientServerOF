@@ -76,7 +76,8 @@ namespace Server
                     client = listener.AcceptTcpClient();
                     connected++;
                     Trace.WriteLine("New client accepted");
-                    HandleClient newClient = new HandleClient(ref ActionQueue, CancelTokenSource.Token);
+                    CancellationToken Token = CancelTokenSource.Token;
+                    HandleClient newClient = new HandleClient(ref ActionQueue);
                     listClients.Add(newClient);
                     newClient.startClient(client);
                 }
@@ -147,8 +148,9 @@ namespace Server
         }
 
         public void Clear() {
-            CancelTokenSource.Cancel();
 
+            CancelTokenSource.Cancel();
+           
             if (threadMessageProcess != null && threadMessageProcess.IsAlive)
                 threadMessageProcess.Join();
             if (threadWaitClient != null && threadWaitClient.IsAlive)
