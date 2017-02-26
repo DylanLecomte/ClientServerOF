@@ -4,7 +4,7 @@ using System.Windows;
 
 namespace Server
 {
-    class Database
+    public class Database
     {
         private readonly SQLiteConnection con;
 
