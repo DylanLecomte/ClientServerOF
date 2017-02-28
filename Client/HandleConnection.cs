@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
@@ -7,25 +8,39 @@ using System.Threading;
 
 namespace Client
 {
-    public class HandleConnection
+    public class HandleConnection : INotifyPropertyChanged
     {
         private readonly TcpClient client;
         private NetworkStream networkStream;
         public string currentMessage { get; private set; }
         public bool connected { get; private set; }
         public bool valideThread { get; private set; }
-        public int betValue { get; set; }
-        private bool userCanBet;
+        public string betValue { get; set; }
+        private bool _userCanBet;
+
+        public string _infoPlayer { get; private set; }
+
+        public string infoPlayer
+        {
+            get { return _infoPlayer; }
+            set
+            {
+                _infoPlayer = value;
+                RaisePropertyChanged("infoPlayer");
+            }
+        }
+
 
         public bool UserCanBet
         {
-            get { return userCanBet; }
-            set { userCanBet = value; }
+            get { return _userCanBet; }
+            set { _userCanBet = value; }
         }
 
         public User user { get;}
         private readonly ClientFrameManager clientFrameManager;
         private Thread ctThread;
+        private Thread playThread;
 
         public RelayCommand<string> SendMessageCommand { get; private set; }
         public RelayCommand BetCommand { get; private set; }
@@ -34,7 +49,7 @@ namespace Client
         {
             user = new User(_userName);
             SendMessageCommand = new RelayCommand<string>(SendMessage);
-            BetCommand = new RelayCommand(Bet, CanBet);
+            BetCommand = new RelayCommand(Bet,CanBet);
             client = new TcpClient();
             clientFrameManager = new ClientFrameManager();
             valideThread = true;
@@ -127,7 +142,7 @@ namespace Client
             {
                 SendMessage(clientFrameManager.GetBalanceBuild());
                 Trace.WriteLine("ACK update balance OK");
-                return true;
+                return true; 
             }
             else
             {
@@ -151,33 +166,56 @@ namespace Client
         public void Bet()
         {
             Trace.WriteLine("");
+            infoPlayer = "Playing...";
             UserCanBet = false;
-            SendMessage(clientFrameManager.UpdatebalanceBuild(-betValue));
-            Trace.WriteLine("Bet of : " + betValue.ToString());
+            //SendMessage(clientFrameManager.UpdatebalanceBuild(-betValue));
+            //Trace.WriteLine("Bet of : " + betValue.ToString());
+            SendMessage(clientFrameManager.UpdatebalanceBuild(-(Int32.Parse(betValue))));
+            Trace.WriteLine("Bet of : " + betValue);
 
-            Thread.Sleep(1000);
-            play();
+            //Thread.Sleep(1000);
+            //play();
+            playThread = new Thread(Play);
+            playThread.Start();
         }
 
         public bool CanBet()
         {
-            return betValue >=1 && UserCanBet && betValue<=user.Balance;
+            //return betValue >= 1 && UserCanBet && betValue <= user.Balance;
+            int value;
+            if (int.TryParse(betValue, out value))
+                return value >= 1 && UserCanBet && value <= user.Balance;
+            else
+                return false;           
         }
 
-        public void play()
+        public void Play()
         {
+            Thread.Sleep(2000);
             Random gen = new Random();
             int prob = gen.Next(100);
             
             if (prob <= 50)
             {
-                SendMessage(clientFrameManager.UpdatebalanceBuild(betValue * 2));
+                //SendMessage(clientFrameManager.UpdatebalanceBuild(betValue * 2));
+                SendMessage(clientFrameManager.UpdatebalanceBuild(Int32.Parse(betValue) * 2));
+                infoPlayer = "Partie gagnée !";
                 Trace.WriteLine("Partie gagnée !");
             }
             else
+            {
                 Trace.WriteLine("Partie perdue !");
+                infoPlayer = "Partie perdue !";
+            }               
 
             UserCanBet = true;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void RaisePropertyChanged(string propName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
     }
 }
