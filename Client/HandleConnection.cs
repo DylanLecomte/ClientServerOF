@@ -15,18 +15,30 @@ namespace Client
         public string currentMessage { get; private set; }
         public bool connected { get; private set; }
         public bool valideThread { get; private set; }
-        public string betValue { get; set; }
+
+        private string _betValue;
+
+        public string BetValue
+        {
+            get { return _betValue; }
+            set
+            {
+                _betValue = value;
+                RaisePropertyChanged("BetValue");
+            }
+        }
+
         private bool _userCanBet;
 
-        public string _infoPlayer { get; private set; }
+        public string _infoPlayer;
 
-        public string infoPlayer
+        public string InfoPlayer
         {
             get { return _infoPlayer; }
             set
             {
                 _infoPlayer = value;
-                RaisePropertyChanged("infoPlayer");
+                RaisePropertyChanged("InfoPlayer");
             }
         }
 
@@ -39,17 +51,24 @@ namespace Client
 
         public User user { get;}
         private readonly ClientFrameManager clientFrameManager;
+        const string password = "Saucisse";
+        DESEncrypt Encrypt ;
         private Thread ctThread;
         private Thread playThread;
 
-        public RelayCommand<string> SendMessageCommand { get; private set; }
+        private WindowPayment windowPayment;
+
         public RelayCommand BetCommand { get; private set; }
+        public RelayCommand AddMoneyCommand { get; private set; }
+        public RelayCommand TempCommand { get; private set; }
 
         public HandleConnection(string _userName)
         {
             user = new User(_userName);
-            SendMessageCommand = new RelayCommand<string>(SendMessage);
             BetCommand = new RelayCommand(Bet,CanBet);
+            AddMoneyCommand = new RelayCommand(AddMoney);
+            TempCommand = new RelayCommand(Temp);
+            Encrypt = new DESEncrypt();
             client = new TcpClient();
             clientFrameManager = new ClientFrameManager();
             valideThread = true;
@@ -94,6 +113,7 @@ namespace Client
                 {
                     if (networkStream.CanRead)
                     {
+                        string cryptedMessage;
                         byte[] myReadBuffer = new byte[1024];
                         StringBuilder myCompleteMessage = new StringBuilder();
                         int numberOfBytesRead = 0;
@@ -107,7 +127,8 @@ namespace Client
                         }
                         while (networkStream.DataAvailable);
                         //Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
-                        currentMessage = myCompleteMessage.ToString();
+                        cryptedMessage= myCompleteMessage.ToString();
+                        currentMessage = Encrypt.DecryptString(cryptedMessage, password);
 
                         header = clientFrameManager.GetFrameHeader(currentMessage);
 
@@ -153,11 +174,13 @@ namespace Client
 
         public void SendMessage(string message)
         {
+            string messageCrypted = Encrypt.EncryptString(message, password);
+            
             if (client.Connected)
             {
                 byte[] sendBytes ;
 
-                sendBytes = Encoding.ASCII.GetBytes(message);
+                sendBytes = Encoding.ASCII.GetBytes(messageCrypted);
                 networkStream.Write(sendBytes, 0, sendBytes.Length);
                 networkStream.Flush();
             }
@@ -166,24 +189,19 @@ namespace Client
         public void Bet()
         {
             Trace.WriteLine("");
-            infoPlayer = "Playing...";
+            InfoPlayer = "Playing...";
             UserCanBet = false;
-            //SendMessage(clientFrameManager.UpdatebalanceBuild(-betValue));
-            //Trace.WriteLine("Bet of : " + betValue.ToString());
-            SendMessage(clientFrameManager.UpdatebalanceBuild(-(Int32.Parse(betValue))));
-            Trace.WriteLine("Bet of : " + betValue);
+            SendMessage(clientFrameManager.UpdatebalanceBuild(-(Int32.Parse(BetValue))));
+            Trace.WriteLine("Bet of : " + BetValue);
 
-            //Thread.Sleep(1000);
-            //play();
             playThread = new Thread(Play);
             playThread.Start();
         }
 
         public bool CanBet()
-        {
-            //return betValue >= 1 && UserCanBet && betValue <= user.Balance;
+        {            
             int value;
-            if (int.TryParse(betValue, out value))
+            if (int.TryParse(BetValue, out value))
                 return value >= 1 && UserCanBet && value <= user.Balance;
             else
                 return false;           
@@ -191,24 +209,41 @@ namespace Client
 
         public void Play()
         {
-            Thread.Sleep(2000);
+            Thread.Sleep(1500);
             Random gen = new Random();
             int prob = gen.Next(100);
             
             if (prob <= 50)
             {
-                //SendMessage(clientFrameManager.UpdatebalanceBuild(betValue * 2));
-                SendMessage(clientFrameManager.UpdatebalanceBuild(Int32.Parse(betValue) * 2));
-                infoPlayer = "Partie gagnée !";
+                SendMessage(clientFrameManager.UpdatebalanceBuild(Int32.Parse(BetValue) * 2));
+                InfoPlayer = "Partie gagnée !";
                 Trace.WriteLine("Partie gagnée !");
             }
             else
             {
                 Trace.WriteLine("Partie perdue !");
-                infoPlayer = "Partie perdue !";
+                InfoPlayer = "Partie perdue !";
             }               
 
             UserCanBet = true;
+            BetValue = "";
+        }
+
+        public void AddMoney()
+        {
+            windowPayment = new WindowPayment(this);
+            windowPayment.ShowDialog();
+        }
+
+        public void Temp()
+        {
+            string plainText = "Test of string to encrypt";
+            string password = "Saucisse";
+
+            DESEncrypt testEncrypt = new DESEncrypt();
+
+            string encText = testEncrypt.EncryptString(plainText, password);
+            string plain = testEncrypt.DecryptString(encText, password);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

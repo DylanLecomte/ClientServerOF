@@ -1,6 +1,7 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
 using System.Diagnostics;
 using System.Threading;
+using System.Windows.Controls;
 
 namespace Client
 {
@@ -9,14 +10,16 @@ namespace Client
         public string Login { get; set; }
         public string Password { get; set; }
         public RelayCommand TryConnectionCommand { get; private set; }
+        public RelayCommandPassword PasswordCommand { get; set; }
 
         private readonly ClientFrameManager clientFrameManager;
         private readonly WindowClientConnection windowClientConnection;
         
-
+   
         public Connection(WindowClientConnection _windowClientConnection)
         {
             TryConnectionCommand = new RelayCommand(TryConnection, CanTry);
+            PasswordCommand = new RelayCommandPassword(this.ExecutePasswordCommand);
             windowClientConnection = _windowClientConnection;
             clientFrameManager = new ClientFrameManager();
         }
@@ -56,7 +59,7 @@ namespace Client
                     default:
                         myConnection.Clear();
                         windowClientConnection.displayMessage("Error when trying to connect to the database");
-                        break;
+                       break;
                 }
             }
             // echec connection au serveur
@@ -72,5 +75,16 @@ namespace Client
         {
             return !string.IsNullOrWhiteSpace(Login) && !string.IsNullOrWhiteSpace(Password);
         }
+
+        public void ExecutePasswordCommand(object obj)
+        {
+            PasswordBox _password;
+            if (obj != null)
+            {
+                _password = (PasswordBox)obj;
+                Password = _password.Password;
+            }
+        }
+        
     }
 }

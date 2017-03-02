@@ -107,6 +107,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Database.cs" />
+    <Compile Include="DESEncrypt.cs" />
     <Compile Include="HandleClient.cs" />
     <Compile Include="HandleServer.cs" />
     <Compile Include="ListViewItem.cs" />
