@@ -77,9 +77,14 @@
     </ApplicationDefinition>
     <Compile Include="ClientFrameManager.cs" />
     <Compile Include="Connection.cs" />
+    <Compile Include="DESEncrypt.cs" />
+    <Compile Include="RelayCommandPassword.cs" />
     <Compile Include="User.cs" />
     <Compile Include="WindowClientConnection.xaml.cs">
       <DependentUpon>WindowClientConnection.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowPayment.xaml.cs">
+      <DependentUpon>WindowPayment.xaml</DependentUpon>
     </Compile>
     <Page Include="WindowClient.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -95,6 +100,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="WindowClientConnection.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowPayment.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

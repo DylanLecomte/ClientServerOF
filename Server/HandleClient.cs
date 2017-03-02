@@ -16,6 +16,8 @@ namespace Server
         private bool threadRunning { get; set; }
         private Thread ctThread;
         private readonly Database db;
+        const string password = "Saucisse";
+        DESEncrypt Encrypt;
 
         private ConcurrentQueue<ThreadMessage> ActionQueue;
 
@@ -25,9 +27,10 @@ namespace Server
             Database.Error error;
             try
             {
-                this.db = new Database();
+                db = new Database();
                 error = db.connect();
-                this.serverFrameManager = new ServerFrameManager();
+                serverFrameManager = new ServerFrameManager();
+                Encrypt = new DESEncrypt();
             }
             catch (Exception ex)
             {
@@ -45,6 +48,8 @@ namespace Server
 
         private void ManageClient()
         {
+            string message;
+            string cryptedMessage;
             int requestCount = 0;
             string header;
             requestCount = 0;
@@ -71,19 +76,21 @@ namespace Server
                         }
                         while (networkStream.DataAvailable);
                         Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
+                        cryptedMessage = myCompleteMessage.ToString();
+                        message = Encrypt.DecryptString(cryptedMessage, password);
 
-                        header = serverFrameManager.GetFrameHeader(myCompleteMessage.ToString());
+                        header = serverFrameManager.GetFrameHeader(message);
 
                         switch (header)
                         {
                             case "LOGIN":
-                                CheckLogin(myCompleteMessage.ToString());
+                                CheckLogin(message);
                                 break;
                             case "GBAL":
                                 SendBalance();
                                 break;
                             case "UBAL":
-                                ManageBalance(myCompleteMessage.ToString());
+                                ManageBalance(message);
                                 break;
                             case "LOGOUT":
                                 threadRunning = false;
@@ -101,11 +108,13 @@ namespace Server
 
         private void SendMessage(string message)
         {
+            string messageCrypted = Encrypt.EncryptString(message, password);
+
             if (clientSocket.Connected)
             {
                 Byte[] sendBytes;
 
-                sendBytes = Encoding.ASCII.GetBytes(message);
+                sendBytes = Encoding.ASCII.GetBytes(messageCrypted);
                 networkStream.Write(sendBytes, 0, sendBytes.Length);
                 networkStream.Flush();
             }            
