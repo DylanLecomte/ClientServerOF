@@ -237,13 +237,7 @@ namespace Client
 
         public void Temp()
         {
-            string plainText = "Test of string to encrypt";
-            string password = "Saucisse";
-
-            DESEncrypt testEncrypt = new DESEncrypt();
-
-            string encText = testEncrypt.EncryptString(plainText, password);
-            string plain = testEncrypt.DecryptString(encText, password);
+            Card.CheckCardDate();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

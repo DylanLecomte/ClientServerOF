@@ -57,7 +57,6 @@ namespace Server
 
             while (threadRunning)
             {
-
                 try
                 {
                     requestCount++;
