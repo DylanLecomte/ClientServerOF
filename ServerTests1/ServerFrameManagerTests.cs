@@ -108,5 +108,49 @@ namespace Server.Tests
             //assert
             Assert.AreEqual(Expected, Result);
         }
+
+        [TestMethod()]
+        public void GetFrameHeaderTest_FrameWithACKUBALHeader_ACKUBALHeader()
+        {
+            //arrange
+            string Result;
+            string Param = "ACKUBAL;False";
+            string Expected = "ACKUBAL";
+            ServerFrameManager FrameManager = new ServerFrameManager();
+            //act
+            Result = FrameManager.GetFrameHeader(Param);
+            //assert
+            Assert.AreEqual(Expected, Result);
+        }
+
+        [TestMethod()]
+        public void GetFrameHeaderTest_FrameWithNoHeader_NoHeader()
+        {
+            //arrange
+            string Result;
+            string Param = ";False";
+            string Expected = "";
+            ServerFrameManager FrameManager = new ServerFrameManager();
+            //act
+            Result = FrameManager.GetFrameHeader(Param);
+            //assert
+            Assert.AreEqual(Expected, Result);
+        }
+
+        [TestMethod()]
+        public void GetFrameHeaderTest_FrameWithNoDelimiter_NoHeader()
+        {
+            //arrange
+            string Result;
+            string Param = "ACKUBALFalse";
+            string Expected = "";
+            ServerFrameManager FrameManager = new ServerFrameManager();
+            //act
+            Result = FrameManager.GetFrameHeader(Param);
+            //assert
+            Assert.AreEqual(Expected, Result);
+        }
+
+        
     }
 }
