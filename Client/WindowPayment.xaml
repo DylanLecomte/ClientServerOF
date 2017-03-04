@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="WindowPayment" Height="300" Width="300">
     <Grid>
-        <Button x:Name="button" Content="Button" HorizontalAlignment="Left" Margin="116,212,0,0" Command="{Binding TempCommand}" CommandParameter="2" VerticalAlignment="Top" Width="75"/>
+        <Button x:Name="button" Content="Payer" HorizontalAlignment="Left" Margin="116,212,0,0" Command="{Binding TempCommand}" CommandParameter="2" VerticalAlignment="Top" Width="75"/>
+        <TextBox x:Name="textBox_CardNumber" HorizontalAlignment="Left" Height="23" Margin="37,42,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="213"/>
+        <TextBox x:Name="textBox_CardDate" HorizontalAlignment="Left" Height="23" Margin="37,98,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="213"/>
+        <TextBox x:Name="textBox_CardCrypto" HorizontalAlignment="Left" Height="23" Margin="37,154,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="144"/>
     </Grid>
 </Window>
