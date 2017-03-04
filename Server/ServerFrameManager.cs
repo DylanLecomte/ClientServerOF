@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Server
 {
-    class ServerFrameManager
+    public class ServerFrameManager
     {
         public string ACKConnectionBuild(Database.Error connectionErrorReturn)
         {
