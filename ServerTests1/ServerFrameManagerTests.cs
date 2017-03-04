@@ -151,6 +151,66 @@ namespace Server.Tests
             Assert.AreEqual(Expected, Result);
         }
 
-        
+        [TestMethod()]
+        public void ConnectionReadTest_CorrectFrame_GoodLoginAndPassword()
+        {
+            //arrange
+            string ResultLogin = "";
+            string ResultPassword = "";
+            string Param = "LOGIN;Jean;Cloud";
+            string ExpectedLogin = "Jean";
+            string ExpectedPassword = "Cloud";
+            ServerFrameManager FrameManager = new ServerFrameManager();
+            //act
+            FrameManager.ConnectionRead(Param, ref ResultLogin, ref ResultPassword);
+            //assert
+            Assert.AreEqual(ExpectedLogin, ResultLogin);
+            Assert.AreEqual(ExpectedPassword, ResultPassword);
+        }
+
+        [TestMethod()]
+        public void ConnectionReadTest_CorrectFrameNoPassword_NoPassword()
+        {
+            //arrange
+            string ResultLogin = "";
+            string ResultPassword = "";
+            string Param = "LOGIN;Jean;";
+            string ExpectedLogin = "Jean";
+            string ExpectedPassword = "";
+            ServerFrameManager FrameManager = new ServerFrameManager();
+            //act
+            FrameManager.ConnectionRead(Param, ref ResultLogin, ref ResultPassword);
+            //assert
+            Assert.AreEqual(ExpectedLogin, ResultLogin);
+            Assert.AreEqual(ExpectedPassword, ResultPassword);
+        }
+
+        [TestMethod()]
+        public void UpdatebalanceReadTest_CorrectFrame_GoodAmout()
+        {
+            //arrange
+            int Result;
+            string Param = "UBAL;120";
+            int Expected = 120;
+            ServerFrameManager FrameManager = new ServerFrameManager();
+            //act
+            Result = FrameManager.UpdatebalanceRead(Param);
+            //assert
+            Assert.AreEqual(Expected, Result);
+        }
+
+        [TestMethod()]
+        public void UpdatebalanceReadTest_NoAmout_GoodAmout()
+        {
+            //arrange
+            int Result;
+            string Param = "UBAL;";
+            int Expected = -1;
+            ServerFrameManager FrameManager = new ServerFrameManager();
+            //act
+            Result = FrameManager.UpdatebalanceRead(Param);
+            //assert
+            Assert.AreEqual(Expected, Result);
+        }
     }
 }

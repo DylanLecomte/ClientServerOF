@@ -140,7 +140,13 @@ namespace Server
             Database.Error error;
             int value;
             value = serverFrameManager.UpdatebalanceRead(frame);
-            error = db.updateBalance(Username, value);
+            if(value > 0)
+            {
+                error = db.updateBalance(Username, value);
+            } else
+            {
+                error = Database.Error.NonExistant;
+            }
 
             // On log et renvoie la réponse au client
             if (error == Database.Error.None)

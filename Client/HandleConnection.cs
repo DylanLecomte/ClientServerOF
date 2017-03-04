@@ -237,7 +237,7 @@ namespace Client
 
         public void Temp()
         {
-            Card.CheckCardDate();
+            //Card.CheckCardDate();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
