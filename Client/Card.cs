@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Client
 {
-    class Card
+    public class Card : INotifyPropertyChanged
     {
         private string _CardNumber;
 
         public string  CardNumber
         {
             get { return _CardNumber; }
-            set { _CardNumber = value; }
+            set
+            {
+                _CardNumber = value;
+                RaiseProperty(nameof(CardNumber));
+            }
         }
 
         private string _CardDate;
@@ -21,7 +22,11 @@ namespace Client
         public string CardDate
         {
             get { return _CardDate; }
-            set { _CardDate = value; }
+            set
+            {
+                _CardDate = value;
+                RaiseProperty(nameof(CardDate));
+            }
         }
 
         private string _CardCrypto;
@@ -29,12 +34,57 @@ namespace Client
         public string CardCrypto
         {
             get { return _CardCrypto; }
-            set { _CardCrypto = value; }
+            set
+            {
+                _CardCrypto = value;
+                RaiseProperty(nameof(CardCrypto));
+            }
         }
 
-        static public bool CheckCardNumber(string _CardNumber)
+        public void ResetCard()
         {
-            return true;
+            CardNumber = "";
+            CardDate = "";
+            CardCrypto = "";
+        }
+
+        static public bool CheckCardNumber(object value)//string _CardNumber)
+        {
+
+            if (value == null)
+            {
+                return true;
+            }
+
+            string ccValue = value as string;
+            if (ccValue == null)
+            {
+                return false;
+            }
+            ccValue = ccValue.Replace("-", "");
+            ccValue = ccValue.Replace(" ", "");
+
+            int checksum = 0;
+            bool evenDigit = false;
+
+            foreach (char digit in ccValue.Reverse())
+            {
+                if (digit < '0' || digit > '9')
+                {
+                    return false;
+                }
+
+                int digitValue = (digit - '0') * (evenDigit ? 2 : 1);
+                evenDigit = !evenDigit;
+
+                while (digitValue > 0)
+                {
+                    checksum += digitValue % 10;
+                    digitValue /= 10;
+                }
+            }
+
+            return (checksum % 10) == 0;
         }
 
         static public bool CheckCardDate(string _CardDate)
@@ -46,5 +96,9 @@ namespace Client
         {
             return true;
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void RaiseProperty(string propname) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propname));
     }
 }
