@@ -27,9 +27,7 @@ namespace Client
                 _betValue = value;
                 RaisePropertyChanged("BetValue");
             }
-        }
-
-        private bool _userCanBet;
+        }      
 
         public string _infoPlayer;
 
@@ -43,7 +41,18 @@ namespace Client
             }
         }
 
+        private bool _userCanAddMoney;
+        public bool UserCanAddMoney
+        {
+            get { return _userCanAddMoney; }
+            set
+            {
+                _userCanAddMoney = value;
+                RaisePropertyChanged("UserCanAddMoney");
+            }
+        }
 
+        private bool _userCanBet;
         public bool UserCanBet
         {
             get { return _userCanBet; }
@@ -76,6 +85,7 @@ namespace Client
         {
             user = new User(_userName);
             card = new Card();
+            UserCanAddMoney = true;
             BetCommand = new RelayCommand(Bet, CanBet);
             AddMoneyCommand = new RelayCommand(AddMoney);
             PaymentCommand = new RelayCommand(Payment, CanPaid);
@@ -137,25 +147,28 @@ namespace Client
 
                         }
                         while (networkStream.DataAvailable);
-                        //Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
                         cryptedMessage = myCompleteMessage.ToString();
                         currentMessage = Encrypt.DecryptString(cryptedMessage, password);
 
                         header = clientFrameManager.GetFrameHeader(currentMessage);
 
-                        switch (header)
-                        {
+                       switch (header)
+                       {
                             case "SBAL":
                                 getBalance(currentMessage);
                                 break;
                             case "ACKUBAL":
                                 ACKBalance(currentMessage);
                                 break;
-                        }
+                       }
                     }
                 }
                 catch (Exception ex)
                 {
+                    InfoPlayer = "Connection lost. Restart client...";
+                    UserCanBet = false;
+                    UserCanAddMoney = false;
+
                     Trace.WriteLine(ex.ToString());
                 }
                 Thread.Sleep(10);
@@ -300,6 +313,9 @@ namespace Client
             string year;
             int monthZero;
             string date;
+
+            if (UserCanAddMoney == false)
+                return false;
 
             if (card.CardNumber == null || card.CardCrypto == null || card.CardDate == null || MoneyToAdd == null)
                 return false;

@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="Client" Height="350" Width="525" >
+        Title="Client" Height="300" Width="400" ResizeMode="NoResize">
     <Grid>
-        <Label x:Name="label" Content="Client" HorizontalAlignment="Left" Margin="220,10,0,0" VerticalAlignment="Top" FontSize="22" FontFamily="Arial" FontWeight="Bold"/>
-        <TextBox x:Name="textBox_Bet" HorizontalAlignment="Left" Height="23" Margin="208,217,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsEnabled="{Binding UserCanBet, UpdateSourceTrigger=PropertyChanged}" Text="{Binding BetValue, UpdateSourceTrigger=PropertyChanged}"/>
-        <Button x:Name="button_Bet" Content="Bet" HorizontalAlignment="Left" Margin="288,217,0,0" VerticalAlignment="Top" Width="75" IsEnabled="{Binding UserCanBet, UpdateSourceTrigger=PropertyChanged}"
+        <Label x:Name="label" Content="Client" HorizontalAlignment="Left" Margin="157,10,0,0" VerticalAlignment="Top" FontSize="22" FontFamily="Arial" FontWeight="Bold"/>
+        <TextBox x:Name="textBox_Bet" HorizontalAlignment="Left" Height="23" Margin="129,159,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsEnabled="{Binding UserCanBet, UpdateSourceTrigger=PropertyChanged}" Text="{Binding BetValue, UpdateSourceTrigger=PropertyChanged}"/>
+        <Button x:Name="button_Bet" Content="Bet" HorizontalAlignment="Left" Margin="209,159,0,0" VerticalAlignment="Top" Width="75" IsEnabled="{Binding UserCanBet, UpdateSourceTrigger=PropertyChanged}"
                 Command="{Binding BetCommand}" CommandParameter="{Binding ElementName=textBox_Bet, Path=Text}" Height="23"/>
-        <TextBlock x:Name="textbox_balance" HorizontalAlignment="Left" Margin="26,78,0,0" VerticalAlignment="Top" Width="120" Text="{Binding user.Balance, StringFormat=Balance : \{0\}}"/>
-        <TextBlock x:Name="textBlock_InfoGame" HorizontalAlignment="Left" Margin="220,142,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="29" Width="110" RenderTransformOrigin="0.258,-0.028" Text="{Binding InfoPlayer}"/>
-        <Button x:Name="button_Add_Money" Content="Add money" HorizontalAlignment="Left" Margin="47,111,0,0" VerticalAlignment="Top" Width="75" Command="{Binding AddMoneyCommand}" Height="23"/>
+        <TextBlock x:Name="textbox_balance" HorizontalAlignment="Left" Margin="126,227,0,0" VerticalAlignment="Top" Width="76" Text="{Binding user.Balance, StringFormat=Balance : \{0\}}"/>
+        <TextBlock x:Name="textBlock_InfoGame" HorizontalAlignment="Left" Margin="143,96,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="29" Width="110" RenderTransformOrigin="0.258,-0.028" Text="{Binding InfoPlayer}"/>
+        <Button x:Name="button_Add_Money" Content="Add money" HorizontalAlignment="Left" Margin="209,220,0,0" VerticalAlignment="Top" Width="75" IsEnabled="{Binding UserCanAddMoney, UpdateSourceTrigger=PropertyChanged}" Command="{Binding AddMoneyCommand}" Height="23" RenderTransformOrigin="0.235,0.372"/>
     </Grid>
 </Window>
