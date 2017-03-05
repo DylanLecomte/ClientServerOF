@@ -6,10 +6,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-// ENVOI TRAME SI OK
-// ALERTER UTILISATEUR
-// FERMER FENETRE
-
 namespace Client
 {
     public class HandleConnection : INotifyPropertyChanged

@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Server
 {
-    class ServerFrameManager
+    public class ServerFrameManager
     {
         public string ACKConnectionBuild(Database.Error connectionErrorReturn)
         {
@@ -59,7 +59,15 @@ namespace Server
             string[] stringSeparators = new string[] { ";" };
 
             parameters = frame.Split(stringSeparators, StringSplitOptions.None);
-            return Int32.Parse(parameters[1]);
+
+            if(parameters[1] == null || parameters[1] == "")
+            {
+                return -1;
+            }
+            else
+            {
+                return Int32.Parse(parameters[1]);
+            }
         }
     }
 }

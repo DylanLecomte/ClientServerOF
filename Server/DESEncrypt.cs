@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Server
 {
-    class DESEncrypt
+    public class DESEncrypt
     {
 
         static TripleDES CreateDES(string key)
