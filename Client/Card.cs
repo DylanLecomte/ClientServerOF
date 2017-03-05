@@ -1,10 +1,13 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Linq;
 
 namespace Client
 {
+    // Classe permettant de représenter une carte de crédit
     public class Card : INotifyPropertyChanged
     {
+        // Attributs avec getters/setters
         private string _CardNumber;
 
         public string  CardNumber
@@ -40,7 +43,10 @@ namespace Client
                 RaiseProperty(nameof(CardCrypto));
             }
         }
+        
+        // Méthodes
 
+        // Fonction permettant de reset les paramètres de la carte
         public void ResetCard()
         {
             CardNumber = "";
@@ -48,7 +54,10 @@ namespace Client
             CardCrypto = "";
         }
 
-        static public bool CheckCardNumber(object value)//string _CardNumber)
+        // Fonction permettant de vérifier le numéro de carte de crédit (Checksum)
+        // Cette fonction vérifie la cohérence des données rentrées et non la structure
+        // La validation de la structure sera faite la classe handleConnection dans la fonction CanPaid
+        static public bool CheckCardNumber(object value)
         {
 
             if (value == null)
@@ -87,13 +96,29 @@ namespace Client
             return (checksum % 10) == 0;
         }
 
+        // Fonction permettant de vérifier la date de carte de crédit (Checksum)
+        // Cette fonction vérifie la cohérence des données rentrées et non la structure
+        // La validation de la structure sera faite la classe handleConnection dans la fonction CanPaid
         static public bool CheckCardDate(string _CardDate)
         {
-            return true;
-        }
+            int year = Int32.Parse(_CardDate.Substring(3, 4));
+            int month = Int32.Parse(_CardDate.Substring(0, 2));
+            int currentMonth = Int32.Parse(DateTime.Now.Month.ToString());
+            int currentYear = Int32.Parse(DateTime.Now.Year.ToString());
 
-        static public bool CheckCardCrypto(string _CardCrypto)
-        {
+            if (year < currentYear || year > currentYear + 3)
+                return false;
+            else if (year == currentYear)
+            {
+                if (month < currentMonth)
+                    return false;
+            }
+            else if (year == currentYear + 2)
+            {
+                if (month > currentMonth)
+                    return false;
+            }
+
             return true;
         }
 

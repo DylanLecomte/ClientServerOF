@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Client
 {
+    // Classe permettant de crypter/decrypter une chaine de caractère
     class DESEncrypt
     {
-
         static TripleDES CreateDES(string key)
         {
             MD5 md5 = new MD5CryptoServiceProvider();

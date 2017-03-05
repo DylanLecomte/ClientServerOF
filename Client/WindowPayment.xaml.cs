@@ -2,12 +2,13 @@
 
 namespace Client
 {
-    /// <summary>
-    /// Logique d'interaction pour WindowPayment.xaml
-    /// </summary>
+    // Classe permettant de gérer la fenêtre d'ajout d'argent du client
     public partial class WindowPayment : Window
     {
+        // Attributs
         HandleConnection myConnection;
+
+        // Méthodes
         public WindowPayment(HandleConnection connection)
         {
             InitializeComponent();
@@ -15,6 +16,7 @@ namespace Client
             DataContext = myConnection;
         }
 
+        // Méthode permettant d'afficher un message sur la fenêtre
         public void displayMessage(string message)
         {
             MessageBox.Show(message);
