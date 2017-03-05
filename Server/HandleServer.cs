@@ -102,10 +102,35 @@ namespace Server
                     switch (CurrentMsg.ActionMsg)
                     {
                         case ThreadMessage.Action.Connection:
-                            App.Current.Dispatcher.Invoke(() =>
+
+                            int NbClientConnected = 0;
+                            HandleClient NewClient = null;
+
+                            foreach (var client in listClients)
                             {
-                                Items.Add(new ListViewItem(CurrentMsg.Username, CurrentMsg.Balance));
-                            });
+                                if(client.Username == CurrentMsg.Username)
+                                {
+                                    NbClientConnected++;
+                                    if (client.ConnectionConfirmed == "UNKNOW")
+                                    {
+                                        NewClient = client;
+                                    }    
+                                }
+                            }
+
+                            if (NewClient != null && NbClientConnected == 1)
+                            {
+                                NewClient.ConfirmConnection("OK");
+                                App.Current.Dispatcher.Invoke(() =>
+                                {
+                                    Items.Add(new ListViewItem(CurrentMsg.Username, CurrentMsg.Balance));
+                                });
+                            }
+                            else
+                            {
+                                NewClient.ConfirmConnection("KO");
+                            }
+
                             break;
                         case ThreadMessage.Action.Disconnection:
                             var ClientToSupp = listClients.FirstOrDefault((item) => item.Username == CurrentMsg.Username);
