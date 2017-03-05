@@ -9,6 +9,11 @@ namespace Client
             return "LOGIN;" + login + ";" + password;
         }
 
+        public string CreationBuild(string login, string password)
+        {
+            return "CREATE;" + login + ";" + password;
+        }
+
         public string GetBalanceBuild()
         {
             return "GBAL;";

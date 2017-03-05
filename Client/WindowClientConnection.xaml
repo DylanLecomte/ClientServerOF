@@ -6,22 +6,23 @@
         xmlns:local="clr-namespace:Client"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         mc:Ignorable="d"
-        Title="Connection" Height="260" Width="300">
+        Title="Connection" Height="300" Width="300">
 
     <Grid HorizontalAlignment="Left" Width="292">
-        <TextBox x:Name="TextBoxLogin" HorizontalAlignment="Left" Height="25" Margin="64,52,0,0" TextWrapping="Wrap" Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="165"/>
+        <TextBox x:Name="TextBoxLogin" HorizontalAlignment="Left" Height="25" Margin="64,45,0,0" TextWrapping="Wrap" Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="165"/>
 
-        <Label x:Name="LabelLogin" Content="Login" HorizontalAlignment="Left" Margin="64,21,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelPassword" Content="Password" HorizontalAlignment="Left" Margin="64,89,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.604,2.929"/>
-        <Button x:Name="ButtonConnection" Content="Connection" HorizontalAlignment="Left" Margin="114,178,0,0" VerticalAlignment="Top" Width="75" 
-                 Command="{Binding TryConnectionCommand}" >
+        <Label x:Name="LabelLogin" Content="Login" HorizontalAlignment="Left" Margin="64,14,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelPassword" Content="Password" HorizontalAlignment="Left" Margin="64,82,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.604,2.929"/>
+        <Button x:Name="ButtonConnection" Content="{Binding ContentButton}" HorizontalAlignment="Left" Margin="105,208,0,0" VerticalAlignment="Top" Width="93" 
+                 Command="{Binding TryConnectionCommand}" Height="24" >
         </Button>
-        <PasswordBox Name="PasswordBox" Width="165" Height="25" Margin="64,112,63,79">
+        <PasswordBox Name="PasswordBox" Width="165" Margin="64,113,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PasswordChanged">
                     <i:InvokeCommandAction Command="{Binding PasswordCommand}" CommandParameter="{Binding ElementName=PasswordBox}"></i:InvokeCommandAction>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </PasswordBox>
+        <CheckBox x:Name="checkBox_NewAccount" Content="Nouvel utilisateur" IsChecked="{Binding NewUser}" HorizontalAlignment="Left" Margin="64,170,0,0" VerticalAlignment="Top" Width="119"/>
     </Grid>
 </Window>

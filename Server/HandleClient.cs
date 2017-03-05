@@ -84,6 +84,9 @@ namespace Server
 
                         switch (header)
                         {
+                            case "CREATE":
+                                CreateUser(message);
+                                break;
                             case "LOGIN":
                                 CheckLogin(message);
                                 break;
@@ -205,6 +208,57 @@ namespace Server
                 Trace.WriteLine(login + " failed to connect");
         }
 
+        private void CreateUser(string frame)
+        {
+            string login = "";
+            string password = "";
+            Database.Error error;
+            serverFrameManager.CreateRead(frame, ref login, ref password);
+
+            // Tentative de création de compte
+            error = db.insertUser(login, password);
+
+            if(error == Database.Error.None)
+                Trace.WriteLine(login + " created successful");
+            else
+            {
+                Trace.WriteLine(login + " failed to create account");
+                // On alerte le client
+                SendMessage(serverFrameManager.ACKConnectionBuild(error));
+                return;
+            }               
+
+            // Tentative de connection avec le login et le mot de passe reçu
+            error = db.checkLoginPwd(login, password);
+
+            // On log
+            if (error == Database.Error.None)
+            {
+                Trace.WriteLine(login + " sign in successful");
+                Username = login;
+
+                // Envoie d'un message de connection au thread principal
+                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Connection, Username, "Loading..."));
+
+                while (ConnectionConfirmed == "UNKNOW")
+                {
+                    Thread.Sleep(1);
+                }
+
+                if(ConnectionConfirmed == "OK")
+                {
+                    // On renvoie la réponse au client
+                    SendMessage(serverFrameManager.ACKConnectionBuild(error));
+                }
+                else
+                {
+                    // On renvoie la réponse au client
+                    SendMessage(serverFrameManager.ACKConnectionBuild(Database.Error.Duplication));
+                }
+            }                
+            else
+                Trace.WriteLine(login + " failed to connect");
+        }
 
         public void ConfirmConnection(string Confirmation)
         {

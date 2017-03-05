@@ -71,7 +71,7 @@ namespace Server
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                errorCode = Error.Duplication;
             }
             finally
             {
