@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="WindowPayment" Height="385" Width="300">
+        Title="WindowPayment" Height="385" Width="300" ResizeMode="NoResize">
     <Grid>
         <Button x:Name="button" Content="Payer" Margin="116,0,101,23" Command="{Binding PaymentCommand}" CommandParameter="2" VerticalAlignment="Bottom"/>
         <TextBox x:Name="textBox_CardNumber" HorizontalAlignment="Left" Height="23" Margin="37,53,0,0" TextWrapping="Wrap" Text="{Binding card.CardNumber, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="213"/>

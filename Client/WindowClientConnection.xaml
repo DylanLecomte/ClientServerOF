@@ -6,9 +6,9 @@
         xmlns:local="clr-namespace:Client"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         mc:Ignorable="d"
-        Title="Connection" Height="300" Width="300">
+        Title="Connection" Height="300" Width="300" WindowStyle="ThreeDBorderWindow" ResizeMode="NoResize" >
 
-    <Grid HorizontalAlignment="Left" Width="292">
+    <Grid HorizontalAlignment="Left" Width="292" >
         <TextBox x:Name="TextBoxLogin" HorizontalAlignment="Left" Height="25" Margin="64,45,0,0" TextWrapping="Wrap" Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="165"/>
 
         <Label x:Name="LabelLogin" Content="Login" HorizontalAlignment="Left" Margin="64,14,0,0" VerticalAlignment="Top"/>
