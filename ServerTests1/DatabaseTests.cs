@@ -21,7 +21,6 @@ namespace Server.Tests
             db.connect();
             //act
             ResultInser = db.insertUser(Username, Password);
-            //ResultInser = db.insertUser(Username, Password);
             ResultRead = db.checkLoginPwd(Username, Password);
             //assert           
 

@@ -58,7 +58,7 @@ namespace Server.Tests
         {
             //arrange
             string Result;
-            string Expected = "ACKLOGIN;Ko";
+            string Expected = "ACKLOGIN;Duplication";
             Database.Error Param = Database.Error.Duplication;
             ServerFrameManager FrameManager = new ServerFrameManager();
             //act

@@ -76,7 +76,7 @@ namespace Client
                 else
                     myConnection.SendMessage(clientFrameManager.ConnectionBuild(Login, Password));
 
-                Thread.Sleep(1000);
+                Thread.Sleep(2000);
                 // tentative de login
                 switch (clientFrameManager.ACKConnectionRead(myConnection.currentMessage))
                 {

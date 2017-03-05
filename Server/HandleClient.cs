@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
@@ -175,7 +176,7 @@ namespace Server
             string password = "";
             Database.Error error;
             serverFrameManager.ConnectionRead(frame, ref login, ref password);
-            
+
             // Tentative de connection avec le login et le mot de passe reçu
             error = db.checkLoginPwd(login, password);
 
@@ -203,9 +204,13 @@ namespace Server
                     // On renvoie la réponse au client
                     SendMessage(serverFrameManager.ACKConnectionBuild(Database.Error.Duplication));
                 }
-            }                
+            }
             else
+            {
+                // On renvoie la réponse au client
+                SendMessage(serverFrameManager.ACKConnectionBuild(error));
                 Trace.WriteLine(login + " failed to connect");
+            }
         }
 
         private void CreateUser(string frame)
@@ -240,10 +245,7 @@ namespace Server
                 // Envoie d'un message de connection au thread principal
                 ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Connection, Username, "Loading..."));
 
-                while (ConnectionConfirmed == "UNKNOW")
-                {
-                    Thread.Sleep(1);
-                }
+                while (ConnectionConfirmed == "UNKNOW") ;
 
                 if(ConnectionConfirmed == "OK")
                 {
@@ -255,9 +257,13 @@ namespace Server
                     // On renvoie la réponse au client
                     SendMessage(serverFrameManager.ACKConnectionBuild(Database.Error.Duplication));
                 }
-            }                
+            }
             else
+            {
+                // On renvoie la réponse au client
+                SendMessage(serverFrameManager.ACKConnectionBuild(error));
                 Trace.WriteLine(login + " failed to connect");
+            }
         }
 
         public void ConfirmConnection(string Confirmation)
