@@ -35,8 +35,8 @@ namespace Server.Tests
         {
             // arrange
             Database.Error Result;
-            string username = "Jean";
-            string password = "Cloud";
+            string username = "user";
+            string password = "Password123";
             Database.Error Expected = Database.Error.None;
             Database db = new Database("databaseTest.db");
             db.connect();
@@ -53,9 +53,9 @@ namespace Server.Tests
             // arrange
             Database.Error ResultCommand;
             int ResultBalance = -1;
-            string username = "Jean";
+            string username = "user3";
             Database.Error ExpectedCommand = Database.Error.None;
-            int ExpectedBalance = 80;
+            int ExpectedBalance = 10;
             Database db = new Database("databaseTest.db");
             db.connect();
             //act
