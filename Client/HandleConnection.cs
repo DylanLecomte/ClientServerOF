@@ -74,9 +74,8 @@ namespace Client
         private readonly ClientFrameManager clientFrameManager;
         // Mot de passe pour le chiffrement
         const string password = "Saucisse";
-        DESEncrypt Encrypt;
+        readonly DESEncrypt Encrypt;
         private Thread ctThread;
-        private Thread playThread;
 
         private WindowPayment windowPayment;
 
@@ -233,7 +232,7 @@ namespace Client
         // Méthode permettant de parier
         public void Bet()
         {
-            Trace.WriteLine("");
+            Thread playThread;
             InfoPlayer = "Playing...";
             UserCanBet = false;
             // Appel de la fonction SendMessage et construction de la trame avec la méthode UpdatebalanceBuild de la classe clientFrameManager
@@ -295,10 +294,6 @@ namespace Client
             int errorInfo =0 ;
             bool testCardNumber = Card.CheckCardNumber(card.CardNumber);
             bool testCardDate = Card.CheckCardDate(card.CardDate);
-            int year = Int32.Parse(card.CardDate.Substring(3, 4));
-            int month = Int32.Parse(card.CardDate.Substring(0, 2));
-            int currentMonth = Int32.Parse(DateTime.Now.Month.ToString()) ;
-            int currentYear = Int32.Parse(DateTime.Now.Year.ToString()) ;
 
             if (testCardNumber == false)
                 errorInfo = 1;
@@ -336,7 +331,6 @@ namespace Client
         {
             string month;
             string year;
-            int monthZero;
             string date;
 
             if (UserCanAddMoney == false)
@@ -350,25 +344,20 @@ namespace Client
             if ( (IsNumeric(card.CardNumber) == false) || card.CardNumber.Length != 16 )
                 return false;
 
-            if (card.CardDate.Length != 7)
+            if (date.Length != 7)
                 return false;
             else
             {
-                month = card.CardDate.Substring(0, 2);
-                year = card.CardDate.Substring(3, 4);
+                month = date.Substring(0, 2);
+                year = date.Substring(3, 4);
 
-                if (IsNumeric(month))
-                    monthZero = getMonth(month);
-                else
+                if (IsNumeric(month)==false)
                     return false;
 
-                if ((IsNumeric(month) == false) || monthZero < 1 || monthZero > 12 )
+                if (date.Substring(2, 1) != "/")
                     return false;
 
-                if (card.CardDate.Substring(2, 1) != "/")
-                    return false;
-
-                if ( IsNumeric(month) == false )
+                if ( IsNumeric(year) == false )
                     return false;
             }
 
@@ -392,15 +381,6 @@ namespace Client
                     return false;
             }
             return true;
-        }
-
-        // Méthode permettant de récupérer le mois d'une chaine de caractère de type MM/AAAA
-        public int getMonth(string _month)
-        {
-            if (card.CardDate.Substring(0, 1) == "0")
-                return Int32.Parse(_month.Substring(1, 1));
-            else
-                return Int32.Parse(_month);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

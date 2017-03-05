@@ -61,28 +61,19 @@ namespace Client
         {
 
             if (value == null)
-            {
                 return true;
-            }
 
             string ccValue = value as string;
             if (ccValue == null)
             {
                 return false;
             }
-            ccValue = ccValue.Replace("-", "");
-            ccValue = ccValue.Replace(" ", "");
 
             int checksum = 0;
             bool evenDigit = false;
 
             foreach (char digit in ccValue.Reverse())
             {
-                if (digit < '0' || digit > '9')
-                {
-                    return false;
-                }
-
                 int digitValue = (digit - '0') * (evenDigit ? 2 : 1);
                 evenDigit = !evenDigit;
 
@@ -102,24 +93,32 @@ namespace Client
         static public bool CheckCardDate(string _CardDate)
         {
             int year = Int32.Parse(_CardDate.Substring(3, 4));
-            int month = Int32.Parse(_CardDate.Substring(0, 2));
+            int month = Card.getMonth(_CardDate.Substring(0, 2));
             int currentMonth = Int32.Parse(DateTime.Now.Month.ToString());
             int currentYear = Int32.Parse(DateTime.Now.Year.ToString());
 
+            if (month < 1 || month > 12)
+                return false;
+
             if (year < currentYear || year > currentYear + 3)
                 return false;
-            else if (year == currentYear)
-            {
-                if (month < currentMonth)
-                    return false;
-            }
-            else if (year == currentYear + 2)
-            {
-                if (month > currentMonth)
-                    return false;
-            }
+
+            if (year == currentYear && month < currentMonth)
+                return false;
+
+            if (year == currentYear + 2 && month > currentMonth)
+                return false;
 
             return true;
+        }
+
+        // Méthode permettant de récupérer le mois d'une chaine de caractère de type MM/AAAA
+        public static int getMonth(string _month)
+        {
+            if (_month.Substring(0, 1) == "0")
+                return Int32.Parse(_month.Substring(1, 1));
+            else
+                return Int32.Parse(_month);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

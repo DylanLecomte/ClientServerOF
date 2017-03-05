@@ -6,8 +6,8 @@ using System.Windows.Input;
 public class RelayCommandPassword : ICommand
 {
     // Attributs
-    private Action<object> command;
-    private Func<bool> canExecute;
+    private readonly Action<object> command;
+    private readonly Func<bool> canExecute;
 
     // Méthodes
 
