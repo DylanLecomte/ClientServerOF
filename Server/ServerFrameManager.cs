@@ -3,10 +3,12 @@ using System.Diagnostics;
 
 namespace Server
 {
+    // Classe de gestion des trames su serveur
     public class ServerFrameManager
     {
         public string ACKConnectionBuild(Database.Error connectionErrorReturn)
         {
+            // Construction d'une trame d'acquitement de connection en fonction de l'erreur
             switch (connectionErrorReturn)
             {
                 case Database.Error.None:
@@ -24,11 +26,13 @@ namespace Server
 
         public string SendBalanceBuild(int amount)
         {
+            // Construction de la trame contenant le solde du client
             return "SBAL;" + amount.ToString();
         }
 
         public string ACKUpdateBalanceBuild(bool balanceupdated)
         {
+            // Construction de la trame d'acquitement de mise à jour du solde du client
             if (balanceupdated)
                 return "ACKUBAL;True";
             else
@@ -40,8 +44,10 @@ namespace Server
             string[] parameters;
             string[] stringSeparators = new string[] { ";" };
 
+            // Récupération des éléments de la trame
             parameters = frame.Split(stringSeparators, StringSplitOptions.None);
 
+            // Retour de l'entête
             return parameters[0];
         }
 
@@ -50,9 +56,10 @@ namespace Server
             string[] parameters;
             string[] stringSeparators = new string[] { ";" };
 
-                parameters = frame.Split(stringSeparators, StringSplitOptions.None);
-                login = parameters[1];
-                password = parameters[2];
+            // Récupération du login et du password dans la trame
+            parameters = frame.Split(stringSeparators, StringSplitOptions.None);
+            login = parameters[1];
+            password = parameters[2];
         }
 
         public void CreateRead(string frame, ref string login, ref string password)
@@ -60,6 +67,7 @@ namespace Server
             string[] parameters;
             string[] stringSeparators = new string[] { ";" };
 
+            // Récupération du login et du password dans la trame
             parameters = frame.Split(stringSeparators, StringSplitOptions.None);
             login = parameters[1];
             password = parameters[2];
@@ -70,6 +78,7 @@ namespace Server
             string[] parameters;
             string[] stringSeparators = new string[] { ";" };
 
+            // Récupération du montant à addition ou soustraire au solde du client
             parameters = frame.Split(stringSeparators, StringSplitOptions.None);
 
             if(parameters[1] == null || parameters[1] == "")

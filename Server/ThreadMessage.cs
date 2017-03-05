@@ -1,7 +1,7 @@
 ﻿
 namespace Server
 {
-
+    // Clase définissant la struture des message entre threads
     class ThreadMessage
     {
         public enum Action

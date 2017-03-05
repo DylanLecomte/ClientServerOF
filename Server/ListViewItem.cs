@@ -2,6 +2,7 @@
 
 namespace Server
 {
+    // Classe de gestion des éléments de la liste de l'IHM
     class ListViewItem : INotifyPropertyChanged
     {
         private string m_Username;

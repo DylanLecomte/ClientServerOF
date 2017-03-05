@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Server
 {
+    // Classe de gestion du chriffrement des trames
     public class DESEncrypt
     {
 

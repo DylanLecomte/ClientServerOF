@@ -5,10 +5,12 @@ using System.Windows;
 
 namespace Server
 {
+    // Classe de gestion de la base de données
     public class Database
     {
         private readonly SQLiteConnection con;
 
+        // Enumération des erreurs possibless
         public enum Error
         {
             None,
@@ -21,6 +23,7 @@ namespace Server
 
         public Database(string DatabaseName)
         {
+            // Build connection string with the name of the database
             string connectionString = @" Data Source = " + Environment.CurrentDirectory + @"\" + DatabaseName + "; Version = 3";
             con = new SQLiteConnection(connectionString);
         }
@@ -32,12 +35,15 @@ namespace Server
 
         public Error connect()
         {
+            // Initialisation du code d'erreur a None
             Error errorCode = Error.None ;
             try
             {
+                // Tentaive de connection à la base de doonées
                 con.Open();
                 if (con.State != System.Data.ConnectionState.Open)
                 {
+                    // Erreur "Database non ouverte"
                     errorCode = Error.DBNotOpen;
                 }
             }
@@ -51,7 +57,8 @@ namespace Server
 
         public Error insertUser(string username, string password)
         {
-            Error errorCode = Error.None;           
+            Error errorCode = Error.None;
+            // Vérification de le connection à la base de données 
             if (con.State != System.Data.ConnectionState.Open)
             {
                 return Error.DBNotOpen;
@@ -73,18 +80,23 @@ namespace Server
             SQLiteCommand cmd = new SQLiteCommand();            
             try
             {
+                // Préparation de la commande SQL
                 cmd.CommandText = @"INSERT INTO User (username, password, balance) VALUES (@username, @password, 10)";
                 cmd.Connection = con;
+                // Configuration des paramètres de la requête
                 cmd.Parameters.Add(new SQLiteParameter(@"username", username));
                 cmd.Parameters.Add(new SQLiteParameter(@"password", PasswordHash));
-
+                 
+                // Exécution de la requête
                 int i = cmd.ExecuteNonQuery();
 
+                // Retourne une erreur si la commande à échouée
                 if (i != 1) { errorCode = Error.CommandFail; }
 
             }
             catch (Exception ex)
             {
+                // Retourne une erreur sur une exception
                 errorCode = Error.Duplication;
             }
             finally
@@ -98,6 +110,7 @@ namespace Server
         public Error deletetUser(string username)
         {
             Error errorCode = Error.None;
+            // Vérification de le connection à la base de données 
             if (con.State != System.Data.ConnectionState.Open)
             {
                 return Error.DBNotOpen;
@@ -106,12 +119,16 @@ namespace Server
             SQLiteCommand cmd = new SQLiteCommand();
             try
             {
+                // Préparation de la commande SQL
                 cmd.CommandText = @"DELETE FROM User WHERE username=@username";
                 cmd.Connection = con;
+                // Configuration des paramètres de la requête
                 cmd.Parameters.Add(new SQLiteParameter(@"username", username));
 
+                // Exécution de la requête
                 int i = cmd.ExecuteNonQuery();
 
+                // Retourne une erreur si la commande à échouée
                 if (i != 1) { errorCode = Error.CommandFail; }
 
             }
@@ -138,13 +155,17 @@ namespace Server
             SQLiteCommand cmd = new SQLiteCommand();
             try
             {
+                // Préparation de la commande SQL
                 cmd.CommandText = @"UPDATE User SET balance = balance + @differential WHERE username = @username";
                 cmd.Connection = con;
+                // Configuration des paramètres de la requête
                 cmd.Parameters.Add(new SQLiteParameter(@"differential", differential));
                 cmd.Parameters.Add(new SQLiteParameter(@"username", username));
 
+                // Exécution de la requête
                 int i = cmd.ExecuteNonQuery();
 
+                // Retourne une erreur si la commande à échouée
                 if (i != 1) { errorCode = Error.CommandFail; }
 
             }
@@ -172,18 +193,26 @@ namespace Server
 
             try
             {
+                // Préparation de la commande SQL
                 cmd.CommandText = @"SELECT balance FROM User WHERE username = @username";
                 cmd.Connection = con;
+                // Configuration des paramètres de la requête
                 cmd.Parameters.Add(new SQLiteParameter(@"username", username));
-                   
+
+                // Exécution de la requête
                 using (SQLiteDataReader reader = cmd.ExecuteReader())
                 {
+                    // Retourne une erreur si il y a deux résultats
                     if (reader.StepCount > 1) { errorCode = Error.Duplication; }
+                    // Retourne une erreur si il n'y a pas de résultat
                     if (reader.StepCount == 0) { errorCode = Error.NonExistant; }
 
                     if (errorCode == Error.None && reader.Read())
+                    {
+                        // Récupération du montant
                         balance = reader.GetInt32(0);
-
+                    }
+                        
                     reader.Close();
                 }
             }
@@ -213,14 +242,18 @@ namespace Server
 
             try
             {
+                // Préparation de la commande SQL
                 cmd.CommandText = @"SELECT password FROM User WHERE username = @username";
                 cmd.Connection = con;
+                // Configuration des paramètres de la requête
                 cmd.Parameters.Add(new SQLiteParameter(@"username", username));
-                   
+
+                // Exécution de la requête  
                 using (SQLiteDataReader reader = cmd.ExecuteReader())
                 {
-
-                if (reader.StepCount > 1) { errorCode = Error.Duplication; }  
+                // Retourne une erreur si il y a deux résultats
+                if (reader.StepCount > 1) { errorCode = Error.Duplication; }
+                // Retourne une erreur si il n'y a pas de résultat
                 if (reader.StepCount == 0) { errorCode = Error.NonExistant; }
 
                 string dbPassword = "";
