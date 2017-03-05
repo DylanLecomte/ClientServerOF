@@ -18,12 +18,14 @@ namespace Server
         private readonly Database db;
         const string password = "Saucisse";
         DESEncrypt Encrypt;
+        public string ConnectionConfirmed { get; private set; }
 
         private ConcurrentQueue<ThreadMessage> ActionQueue;
 
         public HandleClient(ref ConcurrentQueue<ThreadMessage> Queue)
         {
             ActionQueue = Queue;
+            ConnectionConfirmed = "UNKNOW";
             Database.Error error;
             try
             {
@@ -96,7 +98,10 @@ namespace Server
                                 break;
                             case "LOGOUT":
                                 threadRunning = false;
-                                ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Disconnection, Username, ""));
+                                if(ConnectionConfirmed == "OK")
+                                {
+                                    ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Disconnection, Username, ""));
+                                }
                                 break;
                         }
                     }
@@ -174,9 +179,6 @@ namespace Server
             // Tentative de connection avec le login et le mot de passe reçu
             error = db.checkLoginPwd(login, password);
 
-            // On renvoie la réponse au client
-            SendMessage(serverFrameManager.ACKConnectionBuild(error));
-                
             // On log
             if (error == Database.Error.None)
             {
@@ -185,6 +187,22 @@ namespace Server
 
                 // Envoie d'un message de connection au thread principal
                 ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Connection, Username, "Loading..."));
+
+                while (ConnectionConfirmed == "UNKNOW")
+                {
+                    Thread.Sleep(1);
+                }
+
+                if(ConnectionConfirmed == "OK")
+                {
+                    // On renvoie la réponse au client
+                    SendMessage(serverFrameManager.ACKConnectionBuild(error));
+                }
+                else
+                {
+                    // On renvoie la réponse au client
+                    SendMessage(serverFrameManager.ACKConnectionBuild(Database.Error.Duplication));
+                }
             }                
             else
                 Trace.WriteLine(login + " failed to connect");
@@ -213,9 +231,6 @@ namespace Server
             // Tentative de connection avec le login et le mot de passe reçu
             error = db.checkLoginPwd(login, password);
 
-            // On renvoie la réponse au client
-            SendMessage(serverFrameManager.ACKConnectionBuild(error));
-
             // On log
             if (error == Database.Error.None)
             {
@@ -224,15 +239,45 @@ namespace Server
 
                 // Envoie d'un message de connection au thread principal
                 ActionQueue.Enqueue(new ThreadMessage(ThreadMessage.Action.Connection, Username, "Loading..."));
-            }
+
+                while (ConnectionConfirmed == "UNKNOW")
+                {
+                    Thread.Sleep(1);
+                }
+
+                if(ConnectionConfirmed == "OK")
+                {
+                    // On renvoie la réponse au client
+                    SendMessage(serverFrameManager.ACKConnectionBuild(error));
+                }
+                else
+                {
+                    // On renvoie la réponse au client
+                    SendMessage(serverFrameManager.ACKConnectionBuild(Database.Error.Duplication));
+                }
+            }                
             else
                 Trace.WriteLine(login + " failed to connect");
         }
 
+        public void ConfirmConnection(string Confirmation)
+        {
+            if(Confirmation == "OK" || Confirmation == "KO")
+            {
+                ConnectionConfirmed = Confirmation;
+            }
+            else
+            {
+                ConnectionConfirmed = "UNKNOW";
+            }
+        } 
+
         public void Clear()
         {
             if (ctThread != null && ctThread.IsAlive)
+            {
                 ctThread.Abort();
+            }
             clientSocket.Close();
             networkStream.Close();
         }

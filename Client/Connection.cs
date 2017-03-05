@@ -104,7 +104,7 @@ namespace Client
 
                     default:
                         myConnection.Clear();
-                        windowClientConnection.displayMessage("Error when trying to connect to the database");
+                        windowClientConnection.displayMessage("Connection Failed");
                        break;
                 }
             }
