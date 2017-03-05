@@ -18,9 +18,9 @@ namespace Server
             DBNotOpen
         }
 
-        public Database()
+        public Database(string DatabaseName)
         {
-            string connectionString = @" Data Source = " + Environment.CurrentDirectory + @"\database.db; Version = 3";
+            string connectionString = @" Data Source = " + Environment.CurrentDirectory + @"\" + DatabaseName + "; Version = 3";
             con = new SQLiteConnection(connectionString);
         }
 
@@ -63,6 +63,38 @@ namespace Server
                 cmd.Connection = con;
                 cmd.Parameters.Add(new SQLiteParameter(@"username", username));
                 cmd.Parameters.Add(new SQLiteParameter(@"password", password));
+
+                int i = cmd.ExecuteNonQuery();
+
+                if (i != 1) { errorCode = Error.CommandFail; }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                cmd.Dispose();
+            }
+
+            return errorCode;
+        }
+
+        public Error deletetUser(string username)
+        {
+            Error errorCode = Error.None;
+            if (con.State != System.Data.ConnectionState.Open)
+            {
+                return Error.DBNotOpen;
+            }
+
+            SQLiteCommand cmd = new SQLiteCommand();
+            try
+            {
+                cmd.CommandText = @"DELETE FROM User WHERE username=@username";
+                cmd.Connection = con;
+                cmd.Parameters.Add(new SQLiteParameter(@"username", username));
 
                 int i = cmd.ExecuteNonQuery();
 
@@ -207,5 +239,12 @@ namespace Server
             return errorCode;
         }
 
+        public void disconnect()
+        {
+            if (con.State == System.Data.ConnectionState.Open)
+            {
+                con.Close();
+            }
+        }
     }
 }
