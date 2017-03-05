@@ -14,5 +14,10 @@ namespace Client
             myConnection = connection;
             DataContext = myConnection;
         }
+
+        public void displayMessage(string message)
+        {
+            MessageBox.Show(message);
+        }
     }
 }

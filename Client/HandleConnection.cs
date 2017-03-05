@@ -6,10 +6,15 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+// ENVOI TRAME SI OK
+// ALERTER UTILISATEUR
+// FERMER FENETRE
+
 namespace Client
 {
     public class HandleConnection : INotifyPropertyChanged
     {
+        public Card card { get; }
         private readonly TcpClient client;
         private NetworkStream networkStream;
         public string currentMessage { get; private set; }
@@ -49,10 +54,19 @@ namespace Client
             set { _userCanBet = value; }
         }
 
-        public User user { get;}
+        private string _moneyToAdd;
+
+        public string MoneyToAdd
+        {
+            get { return _moneyToAdd; }
+            set { _moneyToAdd = value; }
+        }
+
+
+        public User user { get; }
         private readonly ClientFrameManager clientFrameManager;
         const string password = "Saucisse";
-        DESEncrypt Encrypt ;
+        DESEncrypt Encrypt;
         private Thread ctThread;
         private Thread playThread;
 
@@ -60,14 +74,15 @@ namespace Client
 
         public RelayCommand BetCommand { get; private set; }
         public RelayCommand AddMoneyCommand { get; private set; }
-        public RelayCommand TempCommand { get; private set; }
+        public RelayCommand PaymentCommand { get; private set; }
 
         public HandleConnection(string _userName)
         {
             user = new User(_userName);
-            BetCommand = new RelayCommand(Bet,CanBet);
+            card = new Card();
+            BetCommand = new RelayCommand(Bet, CanBet);
             AddMoneyCommand = new RelayCommand(AddMoney);
-            TempCommand = new RelayCommand(Temp);
+            PaymentCommand = new RelayCommand(Payment, CanPaid);
             Encrypt = new DESEncrypt();
             client = new TcpClient();
             clientFrameManager = new ClientFrameManager();
@@ -77,13 +92,13 @@ namespace Client
 
         public void Clear()
         {
-            if(connected)
+            if (connected)
                 SendMessage("LOGOUT;");
             Thread.Sleep(1000);
             this.client.Close();
             valideThread = false;
-            if(ctThread!=null && ctThread.IsAlive)
-                ctThread.Join();                
+            if (ctThread != null && ctThread.IsAlive)
+                ctThread.Join();
         }
 
         public bool Connect()
@@ -101,7 +116,7 @@ namespace Client
             {
                 Trace.WriteLine(exc);
                 return false;
-            }            
+            }
         }
 
         public void ManageConnection()
@@ -127,7 +142,7 @@ namespace Client
                         }
                         while (networkStream.DataAvailable);
                         //Trace.WriteLine("Frame recieved : " + myCompleteMessage.ToString());
-                        cryptedMessage= myCompleteMessage.ToString();
+                        cryptedMessage = myCompleteMessage.ToString();
                         currentMessage = Encrypt.DecryptString(cryptedMessage, password);
 
                         header = clientFrameManager.GetFrameHeader(currentMessage);
@@ -148,7 +163,7 @@ namespace Client
                     Trace.WriteLine(ex.ToString());
                 }
                 Thread.Sleep(10);
-            }            
+            }
         }
 
         public void getBalance(string message)
@@ -159,26 +174,26 @@ namespace Client
 
         public bool ACKBalance(string message)
         {
-            if(clientFrameManager.ACKUpdateBalanceBuild(message))
+            if (clientFrameManager.ACKUpdateBalanceBuild(message))
             {
                 SendMessage(clientFrameManager.GetBalanceBuild());
                 Trace.WriteLine("ACK update balance OK");
-                return true; 
+                return true;
             }
             else
             {
                 Trace.WriteLine("ACK update balance KO");
                 return false;
-            }           
+            }
         }
 
         public void SendMessage(string message)
         {
             string messageCrypted = Encrypt.EncryptString(message, password);
-            
+
             if (client.Connected)
             {
-                byte[] sendBytes ;
+                byte[] sendBytes;
 
                 sendBytes = Encoding.ASCII.GetBytes(messageCrypted);
                 networkStream.Write(sendBytes, 0, sendBytes.Length);
@@ -199,12 +214,12 @@ namespace Client
         }
 
         public bool CanBet()
-        {            
+        {
             int value;
             if (int.TryParse(BetValue, out value))
                 return value >= 1 && UserCanBet && value <= user.Balance;
             else
-                return false;           
+                return false;
         }
 
         public void Play()
@@ -212,7 +227,7 @@ namespace Client
             Thread.Sleep(1500);
             Random gen = new Random();
             int prob = gen.Next(100);
-            
+
             if (prob <= 50)
             {
                 SendMessage(clientFrameManager.UpdatebalanceBuild(Int32.Parse(BetValue) * 2));
@@ -223,7 +238,7 @@ namespace Client
             {
                 Trace.WriteLine("Partie perdue !");
                 InfoPlayer = "Partie perdue !";
-            }               
+            }
 
             UserCanBet = true;
             BetValue = "";
@@ -231,13 +246,122 @@ namespace Client
 
         public void AddMoney()
         {
+            card.ResetCard();
             windowPayment = new WindowPayment(this);
             windowPayment.ShowDialog();
         }
 
-        public void Temp()
+        public void Payment()
         {
-            Card.CheckCardDate();
+            int errorInfo =0 ;
+            bool testCard = Card.CheckCardNumber(card.CardNumber);
+            int year = Int32.Parse(card.CardDate.Substring(3, 4));
+            int month = Int32.Parse(card.CardDate.Substring(0, 2));
+            int currentMonth = Int32.Parse(DateTime.Now.Month.ToString()) ;
+            int currentYear = Int32.Parse(DateTime.Now.Year.ToString()) ;
+
+            if (testCard==false)
+                errorInfo = 1;
+
+            if (year < currentYear || year > currentYear + 3)
+                errorInfo = 2;
+            else if (year == currentYear)
+            {
+                if (month < currentMonth)
+                    errorInfo = 2;
+            }
+            else if (year == currentYear + 2)
+            {
+                if (month > currentMonth)
+                    errorInfo = 2;
+            }
+
+            if (Int32.Parse(MoneyToAdd) > 1000)
+                errorInfo = 3;
+
+            switch (errorInfo)
+            {
+                case 0:
+                    SendMessage(clientFrameManager.UpdatebalanceBuild(Int32.Parse(MoneyToAdd)));
+                    windowPayment.displayMessage("Balance updated");
+                    windowPayment.Close();
+                    break;
+                case 1:
+                    windowPayment.displayMessage("Invalid card number");
+                    break;
+                case 2:
+                    windowPayment.displayMessage("Invalid card date");
+                    break;
+                case 3:
+                    windowPayment.displayMessage("Invalid amount");
+                    break;
+            }
+        }
+
+        public bool CanPaid()
+        {
+            string month;
+            string year;
+            int monthZero;
+            string date;
+
+            if (card.CardNumber == null || card.CardCrypto == null || card.CardDate == null || MoneyToAdd == null)
+                return false;
+
+            date = card.CardDate;
+
+            if ( (IsNumeric(card.CardNumber) == false) || card.CardNumber.Length != 16 )
+                return false;
+
+            if (card.CardDate.Length != 7)
+                return false;
+            else
+            {
+                month = card.CardDate.Substring(0, 2);
+                year = card.CardDate.Substring(3, 4);
+
+                if (IsNumeric(month))
+                    monthZero = getMonth(month);
+                else
+                    return false;
+
+                if ((IsNumeric(month) == false) || monthZero < 1 || monthZero > 12 )
+                    return false;
+
+                if (card.CardDate.Substring(2, 1) != "/")
+                    return false;
+
+                if ( IsNumeric(month) == false )
+                    return false;
+            }
+
+            if ( (IsNumeric(card.CardCrypto) == false) || card.CardCrypto.Length != 3 )
+                return false;
+
+            if ((IsNumeric(MoneyToAdd) == false) || Int32.Parse(MoneyToAdd) < 1)
+                return false;
+
+            return true;
+        }
+
+        public bool IsNumeric(string text)
+        {
+            if ((text == null) || text.Length ==0)
+                return false;
+            foreach (char digit in text)
+            {
+                if (digit < '0' || digit > '9')
+                    return false;
+            }
+            return true;
+        }
+
+        public int getMonth(string _month)
+        {
+            if (card.CardDate.Substring(0, 1) == "0")
+                return Int32.Parse(_month.Substring(1, 1));
+            else
+                return Int32.Parse(_month);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
