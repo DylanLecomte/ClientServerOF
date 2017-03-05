@@ -15,6 +15,8 @@ namespace Server
                     return "ACKLOGIN;Unknown";
                 case Database.Error.WrongPassword:
                     return "ACKLOGIN;PasswordFalse";
+                case Database.Error.Duplication:
+                    return "ACKLOGIN;Duplication";
                 default:
                     return "ACKLOGIN;Ko";
             }
@@ -51,6 +53,16 @@ namespace Server
                 parameters = frame.Split(stringSeparators, StringSplitOptions.None);
                 login = parameters[1];
                 password = parameters[2];
+        }
+
+        public void CreateRead(string frame, ref string login, ref string password)
+        {
+            string[] parameters;
+            string[] stringSeparators = new string[] { ";" };
+
+            parameters = frame.Split(stringSeparators, StringSplitOptions.None);
+            login = parameters[1];
+            password = parameters[2];
         }
 
         public int UpdatebalanceRead(string frame)
