@@ -8,8 +8,10 @@ using System.Threading;
 
 namespace Client
 {
+    // Classe permettant de gérer la connexion du client avec le serveur
     public class HandleConnection : INotifyPropertyChanged
     {
+        // Attributs avec getters/setters
         public Card card { get; }
         private readonly TcpClient client;
         private NetworkStream networkStream;
@@ -70,6 +72,7 @@ namespace Client
 
         public User user { get; }
         private readonly ClientFrameManager clientFrameManager;
+        // Mot de passe pour le chiffrement
         const string password = "Saucisse";
         DESEncrypt Encrypt;
         private Thread ctThread;
@@ -81,6 +84,9 @@ namespace Client
         public RelayCommand AddMoneyCommand { get; private set; }
         public RelayCommand PaymentCommand { get; private set; }
 
+        // Méthodes
+
+        // Constructeur
         public HandleConnection(string _userName)
         {
             user = new User(_userName);
@@ -96,6 +102,7 @@ namespace Client
             UserCanBet = true;
         }
 
+        // Méthode permettant de fermer proprement le client, en annonçant la déconnexion au serveur et stoppant les threads en cours
         public void Clear()
         {
             if (connected)
@@ -106,7 +113,8 @@ namespace Client
             if (ctThread != null && ctThread.IsAlive)
                 ctThread.Join();
         }
-
+    
+        // Méthode permettant de se connecter au serveur
         public bool Connect()
         {
             try
@@ -125,6 +133,7 @@ namespace Client
             }
         }
 
+        // Méthode gérant les trames reçues du serveur
         public void ManageConnection()
         {
             string header;
@@ -132,6 +141,7 @@ namespace Client
             {
                 try
                 {
+                    // Réception d'une chaine de caractère du serveur
                     if (networkStream.CanRead)
                     {
                         string cryptedMessage;
@@ -147,13 +157,17 @@ namespace Client
 
                         }
                         while (networkStream.DataAvailable);
+                        
                         cryptedMessage = myCompleteMessage.ToString();
+                        // Dechiffrement de la chaine
                         currentMessage = Encrypt.DecryptString(cryptedMessage, password);
 
+                        // Récupération du header de la tram
                         header = clientFrameManager.GetFrameHeader(currentMessage);
 
-                       switch (header)
-                       {
+                        // En fonction du header, on appel des fonctions pour gérer les trames
+                        switch (header)
+                        {
                             case "SBAL":
                                 getBalance(currentMessage);
                                 break;
@@ -163,9 +177,11 @@ namespace Client
                        }
                     }
                 }
+                // En cas de rupture de la connexion avec le serveur, on affiche un message pour lui dire de redemarer le client 
+                // On l'interdit de jouer/ajouter de l'argent
                 catch (Exception ex)
                 {
-                    InfoPlayer = "Connection lost. Restart client...";
+                    InfoPlayer = "Connection lost. Restart serveur and client...";
                     UserCanBet = false;
                     UserCanAddMoney = false;
 
@@ -175,12 +191,14 @@ namespace Client
             }
         }
 
+        // Méthode permettant de récupérer le montant en appelant la méthode de la classe clientFrameManager
         public void getBalance(string message)
         {
             user.Balance = clientFrameManager.SendBalanceRead(message);
             Trace.WriteLine("Balance : " + user.Balance.ToString());
         }
 
+        // Méthode permettant savoir si la récupération du montant s'est bien passé en appelant la méthode de la classe clientFrameManager
         public bool ACKBalance(string message)
         {
             if (clientFrameManager.ACKUpdateBalanceBuild(message))
@@ -196,6 +214,8 @@ namespace Client
             }
         }
 
+        // Méthode permettant d'envoyer une trame au serveur.
+        // On chiffre la trame avec la méthode EncryptString de la classe Encrypt
         public void SendMessage(string message)
         {
             string messageCrypted = Encrypt.EncryptString(message, password);
@@ -210,18 +230,22 @@ namespace Client
             }
         }
 
+        // Méthode permettant de parier
         public void Bet()
         {
             Trace.WriteLine("");
             InfoPlayer = "Playing...";
             UserCanBet = false;
+            // Appel de la fonction SendMessage et construction de la trame avec la méthode UpdatebalanceBuild de la classe clientFrameManager
             SendMessage(clientFrameManager.UpdatebalanceBuild(-(Int32.Parse(BetValue))));
             Trace.WriteLine("Bet of : " + BetValue);
 
+            // On lance la partie
             playThread = new Thread(Play);
             playThread.Start();
         }
 
+        // Méthode permettant de vérifier sur le client peut parier ou pas en fonction de la valeur rentrée et de son montant
         public bool CanBet()
         {
             int value;
@@ -231,14 +255,17 @@ namespace Client
                 return false;
         }
 
+        // Méthode permettant de lancer une partie
         public void Play()
         {
+            // Tempo pour s'assurer que le serveur a bien débité le montant du pari avant de jouer
             Thread.Sleep(1500);
             Random gen = new Random();
             int prob = gen.Next(100);
 
             if (prob <= 50)
             {
+                // Appel de la fonction SendMessage et construction de la trame avec la méthode UpdatebalanceBuild de la classe clientFrameManager
                 SendMessage(clientFrameManager.UpdatebalanceBuild(Int32.Parse(BetValue) * 2));
                 InfoPlayer = "Partie gagnée !";
                 Trace.WriteLine("Partie gagnée !");
@@ -253,6 +280,7 @@ namespace Client
             BetValue = "";
         }
 
+        // Méthode permettant de lancer la fenêtre d'ajout d'argent
         public void AddMoney()
         {
             card.ResetCard();
@@ -260,30 +288,23 @@ namespace Client
             windowPayment.ShowDialog();
         }
 
+        // Méthode permettant de vérifier la cohérence des données rentrées grâce aux méthodes de la classe Card
+        // Si c'est validé, on met à jour le montant du client
         public void Payment()
         {
             int errorInfo =0 ;
-            bool testCard = Card.CheckCardNumber(card.CardNumber);
+            bool testCardNumber = Card.CheckCardNumber(card.CardNumber);
+            bool testCardDate = Card.CheckCardDate(card.CardDate);
             int year = Int32.Parse(card.CardDate.Substring(3, 4));
             int month = Int32.Parse(card.CardDate.Substring(0, 2));
             int currentMonth = Int32.Parse(DateTime.Now.Month.ToString()) ;
             int currentYear = Int32.Parse(DateTime.Now.Year.ToString()) ;
 
-            if (testCard==false)
+            if (testCardNumber == false)
                 errorInfo = 1;
 
-            if (year < currentYear || year > currentYear + 3)
+            if (testCardDate == false)
                 errorInfo = 2;
-            else if (year == currentYear)
-            {
-                if (month < currentMonth)
-                    errorInfo = 2;
-            }
-            else if (year == currentYear + 2)
-            {
-                if (month > currentMonth)
-                    errorInfo = 2;
-            }
 
             if (Int32.Parse(MoneyToAdd) > 1000)
                 errorInfo = 3;
@@ -291,6 +312,7 @@ namespace Client
             switch (errorInfo)
             {
                 case 0:
+                    // Appel de la fonction SendMessage et construction de la trame avec la méthode UpdatebalanceBuild de la classe clientFrameManager
                     SendMessage(clientFrameManager.UpdatebalanceBuild(Int32.Parse(MoneyToAdd)));
                     windowPayment.displayMessage("Balance updated");
                     windowPayment.Close();
@@ -307,6 +329,9 @@ namespace Client
             }
         }
 
+        // Methode permettant de vérifier que les valeurs rentrées dans les champs d'ajout d'agent sont corrects
+        // Cette méthode vérifie la structure des champs (numérique, taille ...) et non la cohérence des données
+        // La méthode va permettre de griser ou non le bouton d'ajout d'argent
         public bool CanPaid()
         {
             string month;
@@ -356,6 +381,7 @@ namespace Client
             return true;
         }
 
+        // Methode permettant de savoir si une chaine de caractère est numérique
         public bool IsNumeric(string text)
         {
             if ((text == null) || text.Length ==0)
@@ -368,6 +394,7 @@ namespace Client
             return true;
         }
 
+        // Méthode permettant de récupérer le mois d'une chaine de caractère de type MM/AAAA
         public int getMonth(string _month)
         {
             if (card.CardDate.Substring(0, 1) == "0")

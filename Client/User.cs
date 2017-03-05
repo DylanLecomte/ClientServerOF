@@ -2,8 +2,10 @@
 
 namespace Client
 {
+    // Classe permettant de représenter un utilisateur et son montant
     public class User : INotifyPropertyChanged
     {
+        // Attributs avec getter/setter
         private string username;
         private int balance;
 
