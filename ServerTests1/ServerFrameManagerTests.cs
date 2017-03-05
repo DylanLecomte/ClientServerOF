@@ -138,20 +138,6 @@ namespace Server.Tests
         }
 
         [TestMethod()]
-        public void GetFrameHeaderTest_FrameWithNoDelimiter_NoHeader()
-        {
-            //arrange
-            string Result;
-            string Param = "ACKUBALFalse";
-            string Expected = "";
-            ServerFrameManager FrameManager = new ServerFrameManager();
-            //act
-            Result = FrameManager.GetFrameHeader(Param);
-            //assert
-            Assert.AreEqual(Expected, Result);
-        }
-
-        [TestMethod()]
         public void ConnectionReadTest_CorrectFrame_GoodLoginAndPassword()
         {
             //arrange

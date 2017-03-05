@@ -27,7 +27,7 @@ namespace Server
             Database.Error error;
             try
             {
-                db = new Database();
+                db = new Database("database.db");
                 error = db.connect();
                 serverFrameManager = new ServerFrameManager();
                 Encrypt = new DESEncrypt();
