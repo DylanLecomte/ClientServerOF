@@ -1,2 +1,3 @@
- - Gérer la déconnexion
- - client : Gérer connexion au serveur, page login apres connexion établit (pas le meuble)
+ - GÃ©rer la dÃ©connexion
+ - client : GÃ©rer connexion au serveur, page login apres connexion Ã©tablit (pas le meuble)
+ TEST
